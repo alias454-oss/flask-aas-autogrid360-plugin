@@ -1,0 +1,102 @@
+{% extends "autogrid360/admin/base.html" %}
+
+
+{% block autogrid360_admin_content %}
+  <section class="content-page content-page--wide autogrid360-admin-page">
+    <h1>{{ title }}</h1>
+
+    {% if not forced_status %}
+      <form method="get">
+        <fieldset>
+          <legend>Filter Inventory</legend>
+          <div class="autogrid360-filter-grid">
+            <div class="form-group">
+              <label for="status">Status</label>
+              <select class="form-control" id="status" name="status">
+                <option value="">All</option>
+                {% for status, count in status_counts|dictsort %}
+                  <option value="{{ status }}"{% if filters.status == status %} selected{% endif %}>{{ {'pending': 'Pending Review', 'sale_pending': 'Sale Pending'}.get(status, status.replace('_', ' ').title()) }} ({{ count }})</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="q">Search</label>
+              <input class="form-control" id="q" name="q" value="{{ filters.q }}" placeholder="Title, seller, make, model">
+            </div>
+            <div class="form-group">
+              <label for="seller">Seller</label>
+              <input class="form-control" id="seller" name="seller" value="{{ filters.seller }}" placeholder="Username">
+            </div>
+          </div>
+          {% if sort_order != 'newest' %}
+            <input type="hidden" name="sort" value="{{ sort_order }}">
+          {% endif %}
+          <div class="actions autogrid360-filter-actions">
+            <button class="button" type="submit">Filter</button>
+            <a href="{{ url_for('autogrid360_admin.inventory') }}">Clear</a>
+          </div>
+        </fieldset>
+      </form>
+    {% endif %}
+
+    {% if listings %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Listing</th>
+              <th>Seller</th>
+              <th>Vehicle</th>
+              <th>Status</th>
+              <th aria-sort="{{ 'ascending' if sort_order == 'oldest' else 'descending' }}">
+                <a href="{{ submitted_sort_url }}">
+                  Submitted {{ '↑' if sort_order == 'oldest' else '↓' }}
+                </a>
+              </th>
+              <th>Price</th>
+              <th>Views</th>
+              <th>Manage</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for listing in listings %}
+              <tr>
+                <td>{{ listing.id }}</td>
+                <td>{{ listing.title }}</td>
+                <td><a href="{{ url_for('autogrid360_admin.seller_profile', user_id=listing.seller.id) }}">{{ listing.seller.username }}</a></td>
+                <td>
+                  {% if listing.vehicle.year %}{{ listing.vehicle.year }} {% endif %}
+                  {{ listing.vehicle.make }} {{ listing.vehicle.model }}
+                </td>
+                <td>{{ listing.status_label }}</td>
+                <td>{{ listing.created_at.strftime("%b %d, %Y") }}</td>
+                <td>{% if listing.price is not none %}{{ listing.price|autogrid360_currency }}{% else %}—{% endif %}</td>
+                <td>{{ listing.view_count }}</td>
+                <td>
+                  <a href="{{ url_for('autogrid360_listings.detail', listing_id=listing.id) }}">Manage</a>
+                  {% if listing.status == 'pending' %}
+                    <form class="inline-action-form" method="post" action="{{ url_for('autogrid360_listings.approve', listing_id=listing.id) }}">
+                      {{ approve_form.hidden_tag() }}
+                      <button class="button" type="submit">Approve</button>
+                    </form>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p>No listings match this view.</p>
+    {% endif %}
+
+    {% if pagination.pages > 1 %}
+      <nav class="pagination" aria-label="Inventory pages">
+        {% if previous_url %}<a href="{{ previous_url }}">Previous</a>{% endif %}
+        <span>Page {{ pagination.page }} of {{ pagination.pages }}</span>
+        {% if next_url %}<a href="{{ next_url }}">Next</a>{% endif %}
+      </nav>
+    {% endif %}
+  </section>
+{% endblock %}

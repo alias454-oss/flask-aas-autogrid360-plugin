@@ -1,0 +1,119 @@
+{% set sidebar_extra_template = "autogrid360/includes/public_nav.html" %}
+{% extends "plugins/base.html" %}
+
+{% block plugin_styles %}
+  <link rel="stylesheet" href="{{ url_for('autogrid360.static', filename='style.css') }}">
+  {% include "autogrid360/includes/seo_head.html" %}
+{% endblock %}
+
+{% block content %}
+  {% include "autogrid360/includes/public_nav_fallback.html" %}
+  <article id="listing-detail" class="content-page autogrid360-public-listing">
+    <div class="autogrid360-listing-utility-row">
+      <a href="{{ url_for('autogrid360.index') }}">Back to listings</a>
+      {% if can_manage_current_listing %}
+        <nav class="autogrid360-listing-owner-controls" aria-label="Listing owner controls">
+          <small>
+            <a href="{{ url_for('autogrid360_listings.edit', listing_id=listing.id) }}">Edit Listing</a>
+            &middot;
+            <a href="{{ url_for('autogrid360_listings.detail', listing_id=listing.id) }}">Manage Listing</a>
+          </small>
+        </nav>
+      {% endif %}
+    </div>
+
+    <header class="autogrid360-listing-header">
+      <h1 class="autogrid360-listing-title">{{ listing.title }}</h1>
+      {% if is_sale_pending %}
+        <p class="autogrid360-sale-pending-status"><strong>Sale Pending</strong></p>
+      {% elif is_sold %}
+        <p class="autogrid360-sold-status"><strong>Sold</strong></p>
+      {% endif %}
+
+      <nav id="listing-actions" class="actions autogrid360-buyer-actions" aria-label="Buyer tools">
+        <a href="{{ url_for('autogrid360_tools.payment_calculator', listing_id=listing.id) }}">Payment Calculator</a>
+        <a href="{{ url_for('autogrid360.printable_listing', listing_id=listing.id) }}">Printable Listing</a>
+        <a href="{{ share_mailto }}">Share by Email</a>
+      </nav>
+    </header>
+
+    <div class="autogrid360-listing-overview">
+      <section id="listing-gallery" class="autogrid360-listing-overview-media autogrid360-images" aria-labelledby="public-listing-images-heading">
+        <h2 id="public-listing-images-heading">Images</h2>
+
+        {% include "autogrid360/includes/listing_gallery.html" %}
+
+        {% if vehicle_history_links %}
+          <section class="autogrid360-history-links" aria-labelledby="vehicle-history-heading">
+            <h2 id="vehicle-history-heading">Vehicle History &amp; Safety Checks</h2>
+            <p>Use the VIN shown in Listing Details when opening these independent external services.</p>
+            <ul>
+              {% for label, external_url in vehicle_history_links %}
+                <li><a href="{{ external_url }}" target="_blank" rel="noopener noreferrer">{{ label }}</a></li>
+              {% endfor %}
+            </ul>
+          </section>
+        {% endif %}
+      </section>
+
+      <section class="autogrid360-listing-overview-details" aria-labelledby="listing-details-heading">
+        <h2 id="listing-details-heading">Listing Details</h2>
+
+        {% if listing.price is not none %}
+          <p class="autogrid360-listing-price">{{ listing.price|autogrid360_currency }}</p>
+        {% endif %}
+
+        <dl class="autogrid360-specs">
+          <dt>Vehicle</dt>
+          <dd>
+            {% if listing.vehicle.year %}{{ listing.vehicle.year }} {% endif %}{{ listing.vehicle.make }} {{ listing.vehicle.model }}{% if listing.vehicle.trim %} {{ listing.vehicle.trim }}{% endif %}
+          </dd>
+
+          {% if listing.listed_at %}<dt>Listed</dt><dd>{{ listing.listed_at.strftime("%B %d, %Y") }}</dd>{% endif %}
+          {% if listing.vehicle.vehicle_type %}<dt>Type</dt><dd>{{ listing.vehicle.vehicle_type }}</dd>{% endif %}
+          {% if listing.vehicle.condition %}<dt>Condition</dt><dd>{{ listing.vehicle.condition }}</dd>{% endif %}
+          {% if listing.vehicle.mileage is not none %}<dt>Mileage</dt><dd>{{ "{:,}".format(listing.vehicle.mileage) }}</dd>{% endif %}
+          {% if listing.vehicle.exterior_color %}<dt>Exterior color</dt><dd>{{ listing.vehicle.exterior_color }}</dd>{% endif %}
+          {% if listing.vehicle.doors is not none %}<dt>Doors</dt><dd>{{ listing.vehicle.doors }}</dd>{% endif %}
+          {% if listing.vehicle.engine %}<dt>Engine</dt><dd>{{ listing.vehicle.engine }}</dd>{% endif %}
+          {% if listing.vehicle.transmission %}<dt>Transmission</dt><dd>{{ listing.vehicle.transmission }}</dd>{% endif %}
+          {% if listing.vehicle.drivetrain %}<dt>Drivetrain</dt><dd>{{ listing.vehicle.drivetrain }}</dd>{% endif %}
+          {% if listing.vehicle.fuel_type %}<dt>Fuel</dt><dd>{{ listing.vehicle.fuel_type }}</dd>{% endif %}
+          {% if listing.vehicle.mpg is not none %}<dt>MPG</dt><dd>{{ listing.vehicle.mpg }}</dd>{% endif %}
+          {% if listing.vehicle.vin %}<dt>VIN</dt><dd>{{ listing.vehicle.vin }}</dd>{% endif %}
+          {% if listing.vehicle.stock_number %}<dt>Stock number</dt><dd>{{ listing.vehicle.stock_number }}</dd>{% endif %}
+          {% if listing.public_location %}<dt>Location</dt><dd>{{ listing.public_location }}</dd>{% endif %}
+          <dt>Seller</dt>
+          <dd>
+            <a class="autogrid360-seller-link" href="{{ url_for('autogrid360.seller_detail', username=listing.seller.username) }}">{{ seller_label }}</a>
+          </dd>
+        </dl>
+      </section>
+    </div>
+
+    {% if listing.description %}
+      <section class="autogrid360-listing-description" aria-labelledby="public-listing-description-heading">
+        <h2 id="public-listing-description-heading">Description</h2>
+        <p>{{ listing.description }}</p>
+      </section>
+    {% endif %}
+
+    {% if listing.vehicle.features %}
+      <section class="autogrid360-features" aria-labelledby="public-listing-features-heading">
+        <h2 id="public-listing-features-heading">Features / Options</h2>
+        <ul>
+          {% for feature in listing.vehicle.features %}
+            <li>{{ feature.label }}</li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% endif %}
+
+    {% if not is_sold %}
+      <p id="seller-contact" class="autogrid360-contact-action">
+        <a href="{{ url_for('autogrid360.contact_seller', listing_id=listing.id) }}">Contact Seller</a>
+      </p>
+    {% endif %}
+  </article>
+  <script src="{{ url_for('autogrid360.static', filename='gallery.js') }}" defer></script>
+{% endblock %}

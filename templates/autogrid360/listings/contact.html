@@ -1,0 +1,61 @@
+{% set sidebar_extra_template = "autogrid360/includes/public_nav.html" %}
+{% extends "plugins/base.html" %}
+
+{% block plugin_styles %}
+  <link rel="stylesheet" href="{{ url_for('autogrid360.static', filename='style.css') }}">
+  {% include "autogrid360/includes/seo_head.html" %}
+{% endblock %}
+
+{% block content %}
+  {% include "autogrid360/includes/public_nav_fallback.html" %}
+  <section class="content-page content-page--narrow autogrid360-inquiry-page">
+    <p><a href="{{ autogrid360_listing_url(listing) }}">Back to listing</a></p>
+    <h1>Contact Seller</h1>
+    <p><strong>Listing:</strong> {{ listing.title }}</p>
+    <p>Your message will be delivered without exposing the seller's email address.</p>
+
+    <form method="post" action="{{ url_for('autogrid360.contact_seller', listing_id=listing.id) }}" novalidate>
+      {{ form.hidden_tag() }}
+
+      <fieldset>
+        <legend>Inquiry Details</legend>
+
+        <div class="form-group">
+          {{ form.name.label }}
+          {{ form.name(class_="form-control", readonly=current_user.is_authenticated) }}
+          {% for error in form.name.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        </div>
+
+        <div class="form-group">
+          {{ form.email.label }}
+          {{ form.email(class_="form-control", readonly=current_user.is_authenticated) }}
+          {% if current_user.is_authenticated %}
+            <p class="form-help">This uses the email address on your account.</p>
+          {% endif %}
+          {% for error in form.email.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        </div>
+
+        <div class="form-group">
+          {{ form.subject.label }}
+          {{ form.subject(class_="form-control") }}
+          {% for error in form.subject.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        </div>
+
+        <div class="form-group">
+          {{ form.message.label }}
+          {{ form.message(class_="form-control", rows=8) }}
+          {% for error in form.message.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        </div>
+
+        <div class="hidden-field" aria-hidden="true">
+          {{ form.nobot_check.label }}
+          {{ form.nobot_check(tabindex="-1", autocomplete="off") }}
+        </div>
+      </fieldset>
+
+      <div class="form-group">
+        <button class="button" type="submit">Send Inquiry</button>
+      </div>
+    </form>
+  </section>
+{% endblock %}

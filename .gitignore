@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pdb
+
+# Pytest cache
+.pytest_cache/
+
+# Virtual environments
+.venv/
+env/
+venv/
+ENV/
+
+# Build / packaging artifacts
+*.so
+*.egg
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Local test/development artifacts
+*.db
+*.sqlite3
+.coverage
+
+# Local logs / runtime artifacts
+*.log
+*.pid
+
+# Editor / IDE metadata
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Local environment / secrets
+.env
+.env.*
+!.env.example
+!.env_example
+
+# Temporary local LLM patch file
+/llm-apply.patch
+
+# Migration history is disposable during heavy development.
+# Freeze and version it after the initial listing schema stabilizes.
+/migrations/

@@ -1,0 +1,78 @@
+{% extends "autogrid360/admin/base.html" %}
+
+
+{% block autogrid360_admin_content %}
+  <section class="content-page content-page--wide autogrid360-admin-page">
+    <p><a href="{{ url_for('autogrid360_reference.values', slug='makes') }}">Back to Makes</a></p>
+    <h1>{{ make.label }} Models</h1>
+    <p>
+      Stable make key: <code>{{ make.key }}</code> &middot; Database ID: {{ make.id }}.
+      Models are canonical choices scoped to this make. Seller-entered unlisted model text remains separate.
+    </p>
+
+    <form method="post" class="content-page content-page--narrow autogrid360-reference-form" novalidate>
+      {{ form.hidden_tag() }}
+
+      <fieldset>
+        <legend>Add Vehicle Model</legend>
+        <div class="form-group">
+          {{ form.label.label }}
+          {{ form.label(class_="form-control") }}
+          {% for error in form.label.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        </div>
+        <div class="form-group">
+          {{ form.sort_order.label }}
+          {{ form.sort_order(class_="form-control") }}
+          {% for error in form.sort_order.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        </div>
+        <div class="checkbox-inline">
+          <label for="{{ form.active.id }}">
+            {{ form.active() }}
+            {{ form.active.label.text }}
+          </label>
+        </div>
+      </fieldset>
+
+      <div class="form-group">
+        {{ form.submit() }}
+      </div>
+    </form>
+
+    {% if models %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Label</th>
+              <th>Stable key</th>
+              <th>DB ID</th>
+              <th>Sort</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for model in models %}
+              <tr>
+                <td>{{ model.label }}</td>
+                <td><code>{{ model.key }}</code></td>
+                <td>{{ model.id }}</td>
+                <td>{{ model.sort_order }}</td>
+                <td>{{ "Active" if model.active else "Disabled" }}</td>
+                <td>
+                  <a href="{{ url_for('autogrid360_reference.edit_model', make_id=make.id, model_id=model.id) }}">Edit</a>
+                  <form class="inline-action-form" method="post" action="{{ url_for('autogrid360_reference.toggle_model', make_id=make.id, model_id=model.id) }}">
+                    {{ toggle_form.hidden_tag() }}
+                    <button class="button" type="submit">{{ "Disable" if model.active else "Enable" }}</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p>No models have been configured for this make.</p>
+    {% endif %}
+  </section>
+{% endblock %}

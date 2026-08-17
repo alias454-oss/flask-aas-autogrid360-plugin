@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }}</title>
+  <link rel="stylesheet" href="{{ url_for('autogrid360.static', filename='style.css') }}">
+  {% include "autogrid360/includes/seo_head.html" %}
+</head>
+<body class="autogrid360-print-body">
+  <main class="autogrid360-print-listing">
+    <p class="autogrid360-print-controls"><a href="{{ autogrid360_listing_url(listing) }}">Back to listing</a></p>
+    <h1>{{ listing.title }}</h1>
+    {% if is_sale_pending %}<p class="autogrid360-sale-pending-status"><strong>Sale Pending</strong></p>{% elif is_sold %}<p class="autogrid360-sold-status"><strong>Sold</strong></p>{% endif %}
+
+    {% if primary_image %}
+      <p class="autogrid360-print-image">
+        <img
+          src="{{ url_for('autogrid360_images.file', listing_id=listing.id, image_id=primary_image.id, variant='display') }}"
+          alt="Primary image for {{ listing.title }}"
+        >
+      </p>
+    {% endif %}
+
+    <dl class="autogrid360-specs">
+      <dt>Vehicle</dt>
+      <dd>{% if listing.vehicle.year %}{{ listing.vehicle.year }} {% endif %}{{ listing.vehicle.make }} {{ listing.vehicle.model }}{% if listing.vehicle.trim %} {{ listing.vehicle.trim }}{% endif %}</dd>
+      {% if listing.price is not none %}<dt>Price</dt><dd>{{ listing.price|autogrid360_currency }}</dd>{% endif %}
+      {% if listing.listed_at %}<dt>Listed</dt><dd>{{ listing.listed_at.strftime("%B %d, %Y") }}</dd>{% endif %}
+      {% if listing.vehicle.mileage is not none %}<dt>Mileage</dt><dd>{{ "{:,}".format(listing.vehicle.mileage) }}</dd>{% endif %}
+      {% if listing.vehicle.condition %}<dt>Condition</dt><dd>{{ listing.vehicle.condition }}</dd>{% endif %}
+      {% if listing.vehicle.transmission %}<dt>Transmission</dt><dd>{{ listing.vehicle.transmission }}</dd>{% endif %}
+      {% if listing.vehicle.drivetrain %}<dt>Drivetrain</dt><dd>{{ listing.vehicle.drivetrain }}</dd>{% endif %}
+      {% if listing.vehicle.vin %}<dt>VIN</dt><dd>{{ listing.vehicle.vin }}</dd>{% endif %}
+      {% if listing.public_location %}<dt>Location</dt><dd>{{ listing.public_location }}</dd>{% endif %}
+      <dt>Seller</dt><dd>{{ seller_label }}</dd>
+    </dl>
+
+    {% if listing.vehicle.features %}
+      <section class="autogrid360-features">
+        <h2>Features / Options</h2>
+        <ul>{% for feature in listing.vehicle.features %}<li>{{ feature.label }}</li>{% endfor %}</ul>
+      </section>
+    {% endif %}
+
+    {% if listing.description %}
+      <section>
+        <h2>Description</h2>
+        <p>{{ listing.description }}</p>
+      </section>
+    {% endif %}
+
+    <p class="autogrid360-print-source"><strong>Listing:</strong> {{ listing_url }}</p>
+  </main>
+</body>
+</html>

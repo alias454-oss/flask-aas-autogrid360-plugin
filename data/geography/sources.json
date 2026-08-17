@@ -1,0 +1,13 @@
+{
+  "license": "Creative Commons Attribution 4.0",
+  "provider": "GeoNames",
+  "provider_url": "https://www.geonames.org/",
+  "sources": {
+    "US": {
+      "archive_sha256": "65dfe4f26002b5285177f14b69bc2716e8157996e78ab28f87366a1bb2e0bc61",
+      "last_modified": "Tue, 11 Aug 2026 02:31:33 GMT",
+      "record_count": 41488,
+      "url": "https://download.geonames.org/export/zip/US.zip"
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{% extends "autogrid360/admin/base.html" %}
+
+
+{% block autogrid360_admin_content %}
+  <section class="content-page content-page--wide autogrid360-admin-page">
+    <h1>AutoGrid360 Sellers</h1>
+
+    <form method="get">
+      <fieldset>
+        <legend>Search Sellers</legend>
+        <div class="form-group">
+          <label for="q">Search sellers</label>
+          <input class="form-control" id="q" name="q" value="{{ search }}" placeholder="Username, display name, company">
+        </div>
+        <div class="actions autogrid360-filter-actions">
+          <button class="button" type="submit">Search</button>
+          <a href="{{ url_for('autogrid360_admin.sellers') }}">Clear</a>
+        </div>
+      </fieldset>
+    </form>
+
+    {% if sellers %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr><th>Username</th><th>Marketplace name</th><th>Listings</th><th>Manage</th></tr>
+          </thead>
+          <tbody>
+            {% for seller in sellers %}
+              {% set profile = profiles.get(seller.id) %}
+              <tr>
+                <td>{{ seller.username }}</td>
+                <td>{{ profile.public_label if profile and profile.public_label else '—' }}</td>
+                <td>{{ listing_counts.get(seller.id, 0) }}</td>
+                <td>
+                  <a href="{{ url_for('autogrid360_admin.seller_profile', user_id=seller.id) }}">Seller profile</a>
+                  · <a href="{{ url_for('autogrid360_admin.inventory', seller=seller.username) }}">Inventory</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p>No AutoGrid360 sellers match this view.</p>
+    {% endif %}
+
+    {% if pagination.pages > 1 %}
+      <nav class="pagination" aria-label="Seller pages">
+        {% if pagination.has_prev %}<a href="{{ url_for('autogrid360_admin.sellers', page=pagination.prev_num, q=search) }}">Previous</a>{% endif %}
+        <span>Page {{ pagination.page }} of {{ pagination.pages }}</span>
+        {% if pagination.has_next %}<a href="{{ url_for('autogrid360_admin.sellers', page=pagination.next_num, q=search) }}">Next</a>{% endif %}
+      </nav>
+    {% endif %}
+  </section>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% set sidebar_extra_template = "autogrid360/includes/public_nav.html" %}
+{% extends "plugins/base.html" %}
+
+{% block plugin_styles %}
+  <link rel="stylesheet" href="{{ url_for('autogrid360.static', filename='style.css') }}">
+  {% include "autogrid360/includes/seo_head.html" %}
+{% endblock %}
+
+{% block content %}
+  {% include "autogrid360/includes/public_nav_fallback.html" %}
+  <section class="content-page content-page--wide autogrid360-inventory-page">
+    <h1>{{ title }}</h1>
+
+    {% if location_error %}
+      <p class="form-error">{{ location_error }}</p>
+    {% endif %}
+
+    <div class="actions autogrid360-filter-actions">
+      <a href="{{ refine_search_url }}">{{ 'Refine Search' if has_filters else 'Advanced Search' }}</a>
+      {% if has_filters %}
+        <a href="{{ clear_inventory_url }}">Clear Search</a>
+      {% endif %}
+      {% if listings and sort != 'newest' %}
+        <a href="{{ newest_url }}">Newest</a>
+      {% endif %}
+    </div>
+
+    {% set empty_message = 'No public listings match the selected filters.' if has_filters else 'No public listings are available right now.' %}
+    {% include "autogrid360/includes/inventory_list.html" %}
+  </section>
+{% endblock %}

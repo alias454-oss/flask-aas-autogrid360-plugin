@@ -1,0 +1,90 @@
+{% extends "autogrid360/admin/base.html" %}
+
+
+{% block autogrid360_admin_content %}
+  <section class="content-page content-page--wide autogrid360-admin-page">
+    <p><a href="{{ url_for('autogrid360_reference.index') }}">Back to Reference Data</a></p>
+    <h1>{{ category_label }}</h1>
+
+    <form method="post" class="content-page content-page--narrow autogrid360-reference-form" novalidate>
+      {{ form.hidden_tag() }}
+
+      <fieldset>
+        <legend>Add Reference Value</legend>
+        <div class="form-group">
+          {{ form.label.label }}
+          {{ form.label(class_="form-control") }}
+          {% for error in form.label.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        </div>
+        <div class="form-group">
+          {{ form.sort_order.label }}
+          {{ form.sort_order(class_="form-control") }}
+          {% for error in form.sort_order.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        </div>
+        <div class="checkbox-inline">
+          <label for="{{ form.active.id }}">
+            {{ form.active() }}
+            {{ form.active.label.text }}
+          </label>
+        </div>
+        {% if category == 'feature' %}
+          <div class="checkbox-inline">
+            <label for="{{ form.default_selected.id }}">
+              {{ form.default_selected() }}
+              {{ form.default_selected.label.text }}
+            </label>
+          </div>
+        {% endif %}
+      </fieldset>
+
+      <div class="form-group">
+        {{ form.submit() }}
+      </div>
+    </form>
+
+    {% if values %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Label</th>
+              <th>Stable key</th>
+              <th>DB ID</th>
+              <th>Sort</th>
+              <th>Status</th>
+              {% if category == 'make' %}<th>Models</th>{% endif %}
+              {% if category == 'feature' %}<th>Default</th>{% endif %}
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for value in values %}
+              <tr>
+                <td>{{ value.label }}</td>
+                <td><code>{{ value.key }}</code></td>
+                <td>{{ value.id }}</td>
+                <td>{{ value.sort_order }}</td>
+                <td>{{ "Active" if value.active else "Disabled" }}</td>
+                {% if category == 'make' %}
+                  <td>
+                    <a href="{{ url_for('autogrid360_reference.models', make_id=value.id) }}">Models ({{ model_counts.get(value.id, 0) }})</a>
+                  </td>
+                {% endif %}
+                {% if category == 'feature' %}<td>{{ "Yes" if value.default_selected else "No" }}</td>{% endif %}
+                <td>
+                  <a href="{{ url_for('autogrid360_reference.edit', slug=slug, value_id=value.id) }}">Edit</a>
+                  <form class="inline-action-form" method="post" action="{{ url_for('autogrid360_reference.toggle', slug=slug, value_id=value.id) }}">
+                    {{ toggle_form.hidden_tag() }}
+                    <button class="button" type="submit">{{ "Disable" if value.active else "Enable" }}</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p>No values have been configured.</p>
+    {% endif %}
+  </section>
+{% endblock %}

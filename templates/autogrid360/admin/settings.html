@@ -1,0 +1,227 @@
+{% extends "autogrid360/admin/base.html" %}
+
+
+{% block autogrid360_admin_content %}
+  <section class="content-page autogrid360-settings-page">
+    <h1>AutoGrid360 Settings</h1>
+    <form method="post" novalidate>
+      {{ form.hidden_tag() }}
+
+      <fieldset>
+        <legend>Listing Approval</legend>
+
+        <div class="checkbox-inline">
+          <label for="{{ form.require_listing_approval.id }}">
+            {{ form.require_listing_approval() }}
+            {{ form.require_listing_approval.label.text }}
+          </label>
+        </div>
+        <p class="form-help">
+          When disabled, a seller may publish a draft listing directly without administrator approval.
+        </p>
+
+        <div class="checkbox-inline">
+          <label for="{{ form.require_rereview_on_edit.id }}">
+            {{ form.require_rereview_on_edit() }}
+            {{ form.require_rereview_on_edit.label.text }}
+          </label>
+        </div>
+        <p class="form-help">
+          This applies only while listing approval is enabled. When enabled, changes to a published active listing return it to pending review.
+        </p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Listing Expiration</legend>
+
+        <div class="checkbox-inline">
+          <label for="{{ form.enable_listing_expiration.id }}">
+            {{ form.enable_listing_expiration() }}
+            {{ form.enable_listing_expiration.label.text }}
+          </label>
+        </div>
+        <p class="form-help">
+          When enabled, listings receive an expiration deadline each time they become active. Existing active listings are not backfilled or recalculated.
+        </p>
+
+        <div class="form-group">
+          {{ form.listing_expiration_days.label }}
+          {{ form.listing_expiration_days(class_="form-control", min=1, max=3650) }}
+          {% for error in form.listing_expiration_days.errors %}
+            <p class="form-error">{{ error }}</p>
+          {% endfor %}
+          <p class="form-help">
+            Number of days an automatically expiring listing remains active after publication.
+          </p>
+        </div>
+
+        <div class="form-group">
+          {{ form.expiration_warning_days.label }}
+          {{ form.expiration_warning_days(class_="form-control", min=0, max=3649) }}
+          {% for error in form.expiration_warning_days.errors %}
+            <p class="form-error">{{ error }}</p>
+          {% endfor %}
+          <p class="form-help">
+            Number of days before expiration to queue the one-time seller warning. Set to 0 to disable expiration-warning email.
+          </p>
+        </div>
+
+        <div class="form-group">
+          {{ form.expired_retention_days.label }}
+          {{ form.expired_retention_days(class_="form-control", min=1, max=3650) }}
+          {% for error in form.expired_retention_days.errors %}
+            <p class="form-error">{{ error }}</p>
+          {% endfor %}
+          <p class="form-help">
+            Number of days an expired listing remains available to its seller for relisting before AutoGrid360 automatically soft-removes it. Default: 30 days.
+          </p>
+        </div>
+
+        <div class="form-group">
+          {{ form.expired_removal_warning_days.label }}
+          {{ form.expired_removal_warning_days(class_="form-control", min=0, max=3649) }}
+          {% for error in form.expired_removal_warning_days.errors %}
+            <p class="form-error">{{ error }}</p>
+          {% endfor %}
+          <p class="form-help">
+            Number of days before automatic removal to queue the one-time aged-out warning. Set to 0 to disable the pre-removal warning; the removal notice is still attempted when the listing is archived.
+          </p>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Public Listing Availability</legend>
+
+        <div class="checkbox-inline">
+          <label for="{{ form.show_sale_pending_listings_publicly.id }}">
+            {{ form.show_sale_pending_listings_publicly() }}
+            {{ form.show_sale_pending_listings_publicly.label.text }}
+          </label>
+        </div>
+        <p class="form-help">
+          When enabled, Sale Pending inventory remains visible in public inventory/search and on its public detail page. Pending Review listings are always private.
+        </p>
+
+        <div class="checkbox-inline">
+          <label for="{{ form.show_sold_listings_publicly.id }}">
+            {{ form.show_sold_listings_publicly() }}
+            {{ form.show_sold_listings_publicly.label.text }}
+          </label>
+        </div>
+        <p class="form-help">
+          When enabled, sold inventory remains visible publicly until it is removed manually or reaches the configured sold-retention limit.
+        </p>
+
+        <div class="form-group">
+          {{ form.sold_retention_days.label }}
+          {{ form.sold_retention_days(class_="form-control", min=0, max=3650) }}
+          {% for error in form.sold_retention_days.errors %}
+            <p class="form-error">{{ error }}</p>
+          {% endfor %}
+          <p class="form-help">
+            Number of days a sold listing is retained before automatic soft-removal. Set to 0 to retain sold listings indefinitely. Default: 90 days.
+          </p>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Inventory Backup / Restore</legend>
+
+        <div class="checkbox-inline">
+          <label for="{{ form.allow_seller_inventory_import.id }}">
+            {{ form.allow_seller_inventory_import() }}
+            {{ form.allow_seller_inventory_import.label.text }}
+          </label>
+        </div>
+        <p class="form-help">
+          Seller export is always available for their own inventory. Seller restore is disabled by default because a trusted AutoGrid360 bundle can preserve Active, Sale Pending, Sold, Expired, Removed, and Pending Review states. Enable this only when ordinary sellers are trusted to restore their own inventory. Administrators and operators can always use the dedicated backup/restore workflow.
+        </p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Listing Image Storage</legend>
+
+        <div class="form-group">
+          {{ form.listing_images_path.label }}
+          {{ form.listing_images_path(class_="form-control", maxlength=255) }}
+          {% for error in form.listing_images_path.errors %}
+            <p class="form-error">{{ error }}</p>
+          {% endfor %}
+          <p class="form-help">
+            Complete storage directory for normalized listing images. Relative paths resolve from the host application project root; absolute paths are used as configured. Default: <code>uploads/listings</code>. The application process must be able to write to the selected directory. Changing this path does not move existing files. Paths beneath <code>app/static/</code> may be served directly by the web server and should be treated as public-capable presentation storage.
+          </p>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Currency Display</legend>
+
+        <div class="form-group">
+          {{ form.currency_code.label }}
+          {{ form.currency_code(class_="form-control", maxlength=3, size=4) }}
+          {% for error in form.currency_code.errors %}
+            <p class="form-error">{{ error }}</p>
+          {% endfor %}
+          <p class="form-help">Three-letter currency code used in machine-readable listing metadata, such as USD, CAD, GBP, or EUR.</p>
+        </div>
+
+        <div class="form-group">
+          {{ form.currency_symbol.label }}
+          {{ form.currency_symbol(class_="form-control", maxlength=8) }}
+          {% for error in form.currency_symbol.errors %}
+            <p class="form-error">{{ error }}</p>
+          {% endfor %}
+          <p class="form-help">Prefix shown before AutoGrid360 prices and payment-calculator amounts.</p>
+        </div>
+
+        <div class="form-group">
+          {{ form.currency_decimal_separator.label }}
+          {{ form.currency_decimal_separator(class_="form-control") }}
+          {% for error in form.currency_decimal_separator.errors %}
+            <p class="form-error">{{ error }}</p>
+          {% endfor %}
+        </div>
+
+        <div class="form-group">
+          {{ form.currency_thousands_separator.label }}
+          {{ form.currency_thousands_separator(class_="form-control") }}
+          {% for error in form.currency_thousands_separator.errors %}
+            <p class="form-error">{{ error }}</p>
+          {% endfor %}
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Distance Search</legend>
+
+        <div class="form-group">
+          {{ form.default_distance_unit.label }}
+          {{ form.default_distance_unit(class_="form-control") }}
+          {% for error in form.default_distance_unit.errors %}
+            <p class="form-error">{{ error }}</p>
+          {% endfor %}
+          <p class="form-help">
+            Auto uses miles for U.S. and UK searches and kilometers for other countries. Buyers may override the unit on each radius search.
+          </p>
+        </div>
+      </fieldset>
+
+      <div class="form-group">
+        {{ form.submit() }}
+      </div>
+    </form>
+
+    <hr>
+
+    <section aria-labelledby="autogrid360-expiration-maintenance">
+      <h2 id="autogrid360-expiration-maintenance">Expiration Maintenance</h2>
+      <p>
+        Expire active listings whose stored expiration deadline has passed. This administrator action remains available for manual maintenance; the AutoGrid360 maintenance CLI additionally handles seller warnings and automatic aging of expired inventory into the removed archive state.
+      </p>
+      <form method="post" action="{{ url_for('autogrid360_settings.expire_due') }}">
+        {{ maintenance_form.hidden_tag() }}
+        {{ maintenance_form.submit() }}
+      </form>
+    </section>
+  </section>
+{% endblock %}

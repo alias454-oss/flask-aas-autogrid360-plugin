@@ -1,0 +1,84 @@
+{% set sidebar_extra_template = "autogrid360/includes/public_nav.html" %}
+{% extends "plugins/base.html" %}
+
+{% block plugin_styles %}
+  <link rel="stylesheet" href="{{ url_for('autogrid360.static', filename='style.css') }}">
+{% endblock %}
+
+{% block content %}
+  {% include "autogrid360/includes/public_nav_fallback.html" %}
+  <section class="content-page autogrid360-account-page">
+    <h1>Inventory Backup / Restore</h1>
+
+    <p>
+      AutoGrid360 inventory bundles are portable ZIP backups containing listing and vehicle data,
+      lifecycle state/history, stable automotive reference keys, seller-profile metadata, and
+      listing images. Passwords, sessions, roles, MFA data, and account email are never exported.
+    </p>
+
+    <section class="panel autogrid360-tool-panel">
+      <h2>Export Inventory</h2>
+      <p>
+        Export all of your AutoGrid360 listings exactly as they currently exist, including Draft,
+        Pending Review, Active, Sale Pending, Sold, Expired, and Removed inventory. Images and
+        lifecycle timestamps are included. Export is always available for your own inventory.
+      </p>
+      <p>
+        <a class="button" href="{{ url_for('autogrid360_account.inventory_export') }}">
+          Download Inventory Backup
+        </a>
+      </p>
+    </section>
+
+    <section class="panel autogrid360-tool-panel">
+      <h2>Restore Inventory</h2>
+      {% if seller_import_allowed %}
+        <p>
+          A normal restore preserves the source listing status, publication/expiration/sold history,
+          featured state, view count, and portable identity. Destination database IDs and automotive
+          reference IDs are rebuilt locally, and images are revalidated through the normal image
+          pipeline.
+        </p>
+        <p>
+          If the bundle contains an AutoGrid360 seller profile and you do not already have one, that
+          profile is created. An existing seller profile is never overwritten by a restore.
+        </p>
+
+        <form method="post" enctype="multipart/form-data" action="{{ url_for('autogrid360_account.inventory_import') }}" novalidate>
+          {{ form.hidden_tag() }}
+          <fieldset>
+            <legend>Restore Bundle</legend>
+            <div class="form-group">
+              {{ form.bundle.label }}
+              {{ form.bundle() }}
+              {% for error in form.bundle.errors %}
+                <p class="form-error">{{ error }}</p>
+              {% endfor %}
+            </div>
+            <div class="checkbox-inline">
+              <label for="{{ form.as_draft.id }}">
+                {{ form.as_draft() }}
+                {{ form.as_draft.label.text }}
+              </label>
+            </div>
+            <p class="form-help">
+              Use this only when you intentionally want content ingestion instead of a faithful
+              backup restore. It discards source publication/lifecycle state, featured state, and
+              view counts.
+            </p>
+          </fieldset>
+          <div class="form-group">
+            {{ form.submit() }}
+          </div>
+        </form>
+      {% else %}
+        <p>
+          Seller inventory restore is disabled by the site administrator. You can always export your
+          inventory backup. An administrator can restore a bundle for you when needed.
+        </p>
+      {% endif %}
+    </section>
+
+    <p><a href="{{ url_for('autogrid360_listings.mine') }}">Back to My Listings</a></p>
+  </section>
+{% endblock %}

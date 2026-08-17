@@ -1,0 +1,647 @@
+.autogrid360-status-ribbon-frame {
+  overflow: hidden;
+  position: relative;
+}
+
+.autogrid360-status-ribbon {
+  --f: 0.5em;
+
+  border-image: conic-gradient(#0008 0 0) 51% / var(--f);
+  clip-path: polygon(
+    100% calc(100% - var(--f)),
+    100% 100%,
+    calc(100% - var(--f)) calc(100% - var(--f)),
+    var(--f) calc(100% - var(--f)),
+    0 100%,
+    0 calc(100% - var(--f)),
+    999px calc(100% - var(--f) - 999px),
+    calc(100% - 999px) calc(100% - var(--f) - 999px)
+  );
+  color: #fff;
+  font-size: 1rem;
+  font-weight: bold;
+  left: 0;
+  letter-spacing: 0.04em;
+  line-height: 1.8;
+  padding-bottom: var(--f);
+  padding-inline: 1lh;
+  pointer-events: none;
+  position: absolute;
+  text-transform: uppercase;
+  top: 0;
+  transform: translate(calc((cos(45deg) - 1) * 100%), -100%) rotate(-45deg);
+  transform-origin: 100% 100%;
+  user-select: none;
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.autogrid360-status-ribbon__label {
+  display: inline-block;
+  inline-size: 8ch;
+  text-align: center;
+}
+
+.autogrid360-status-ribbon--pending {
+  background-color: #f07818;
+}
+
+.autogrid360-status-ribbon--pending .autogrid360-status-ribbon__label {
+  transform: scaleX(0.92);
+}
+
+.autogrid360-status-ribbon--sold {
+  background-color: #bd1550;
+}
+
+.autogrid360-inventory-ribbon-frame {
+  height: 5rem;
+  width: 7.5rem;
+}
+
+.autogrid360-inventory-ribbon-frame .autogrid360-status-ribbon {
+  font-size: 0.68rem;
+}
+
+.autogrid360-listing-card__media .autogrid360-status-ribbon {
+  font-size: 0.78rem;
+}
+
+.autogrid360-primary-image img {
+  height: auto;
+  max-height: 40rem;
+  max-width: 100%;
+}
+
+.autogrid360-image-placeholder {
+  border: 1px solid currentColor;
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+.autogrid360-image-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  list-style: none;
+  padding: 0;
+}
+
+.autogrid360-image-grid img {
+  height: auto;
+  max-width: 100%;
+}
+
+.autogrid360-image-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.autogrid360-image-actions form {
+  display: block;
+  margin: 0;
+}
+
+.autogrid360-image-actions .button {
+  font-size: 0.875rem;
+  padding: 0.3rem 0.5rem;
+}
+
+.autogrid360-image-order-button {
+  min-width: 2rem;
+}
+
+.autogrid360-image-upload {
+  margin-top: 1.5rem;
+}
+
+.autogrid360-inventory-photo {
+  width: 7.5rem;
+}
+
+.autogrid360-inventory-thumb,
+.autogrid360-inventory-thumb-placeholder {
+  box-sizing: border-box;
+  display: block;
+  height: 5rem;
+  width: 7.5rem;
+}
+
+.autogrid360-inventory-thumb {
+  object-fit: cover;
+}
+
+.autogrid360-inventory-thumb-placeholder {
+  align-items: center;
+  border: 1px solid currentColor;
+  display: flex;
+  font-size: 0.85rem;
+  justify-content: center;
+  text-align: center;
+}
+
+.autogrid360-listing-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.autogrid360-listing-card {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 10rem) minmax(0, 1fr);
+  align-items: start;
+}
+
+.autogrid360-listing-card__title {
+  margin: 0 0 0.5rem;
+}
+
+.autogrid360-listing-card__body {
+  min-width: 0;
+}
+
+.autogrid360-listing-card__meta,
+.autogrid360-listing-card__price {
+  margin: 0.35rem 0;
+}
+
+.autogrid360-listing-card__price,
+.autogrid360-listing-price {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.autogrid360-listing-card__actions {
+  margin: 0.75rem 0 0;
+}
+
+.autogrid360-listing-thumb {
+  width: 100%;
+  height: auto;
+}
+
+@media (max-width: 36rem) {
+  .autogrid360-listing-card {
+    grid-template-columns: 1fr;
+  }
+
+  .autogrid360-features ul {
+    columns: 1;
+  }
+
+  .autogrid360-specs {
+    grid-template-columns: 1fr;
+  }
+}
+
+.autogrid360-listing-thumb-placeholder {
+  border: 1px solid currentColor;
+  box-sizing: border-box;
+  min-height: 6rem;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+.autogrid360-seller-card {
+  margin-bottom: 1rem;
+}
+
+.autogrid360-seller-card--with-image {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+}
+
+.autogrid360-seller-profile-image {
+  border-radius: 6px;
+  display: block;
+  flex: 0 0 6rem;
+  height: 6rem;
+  object-fit: cover;
+  width: 6rem;
+}
+
+.autogrid360-seller-card__name {
+  margin-bottom: 0.25rem;
+}
+
+.autogrid360-seller-card__business {
+  margin: 0;
+}
+
+.autogrid360-specs {
+  display: grid;
+  gap: 0.5rem 1rem;
+  grid-template-columns: max-content minmax(0, 1fr);
+}
+
+.autogrid360-specs dt {
+  font-weight: bold;
+}
+
+.autogrid360-specs dd {
+  margin: 0;
+}
+
+.autogrid360-search-filters {
+  margin-bottom: 2rem;
+}
+
+.autogrid360-filter-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+}
+
+.autogrid360-filter-actions {
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.autogrid360-feature-filter-grid {
+  display: grid;
+  gap: 0.35rem 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+}
+
+.autogrid360-contact-action {
+  margin-top: 2rem;
+}
+
+.autogrid360-sold-status {
+  font-size: 1.1rem;
+  margin: 0 0 1rem;
+}
+
+.autogrid360-admin-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.autogrid360-admin-stats {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  margin-bottom: 2rem;
+}
+
+.autogrid360-admin-stats strong,
+.autogrid360-admin-stats span {
+  display: block;
+}
+
+.autogrid360-admin-stats strong {
+  font-size: 1.5rem;
+}
+
+.autogrid360-admin-listing-controls {
+  margin: 1rem 0;
+}
+
+.autogrid360-feature-choices ul {
+  display: grid;
+  gap: 0.35rem 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.autogrid360-feature-choices li {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.autogrid360-feature-choices li label {
+  margin: 0;
+}
+
+.autogrid360-features ul {
+  columns: 2;
+  max-width: 40rem;
+}
+
+.autogrid360-reference-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+}
+
+.autogrid360-listing-utility-row {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.autogrid360-listing-owner-controls {
+  margin-left: auto;
+}
+
+.autogrid360-buyer-actions {
+  gap: 0.75rem 1rem;
+  margin: 1rem 0 1.5rem;
+}
+
+.autogrid360-history-links {
+  margin-top: 2rem;
+}
+
+.autogrid360-payment-result {
+  margin: 2rem 0;
+}
+
+.autogrid360-amortization {
+  margin-top: 2rem;
+}
+
+.autogrid360-print-body {
+  margin: 0;
+  padding: 2rem;
+}
+
+.autogrid360-print-listing {
+  margin: 0 auto;
+  max-width: 50rem;
+}
+
+.autogrid360-print-image img {
+  height: auto;
+  max-height: 28rem;
+  max-width: 100%;
+}
+
+.autogrid360-print-source {
+  overflow-wrap: anywhere;
+}
+
+@media print {
+  .autogrid360-print-body {
+    padding: 0;
+  }
+
+  .autogrid360-print-controls {
+    display: none;
+  }
+
+  .autogrid360-print-listing {
+    max-width: none;
+  }
+}
+
+.autogrid360-tool-panel {
+  margin: 1.5rem 0;
+}
+
+.autogrid360-tool-panel h2 {
+  margin-top: 0;
+}
+
+.autogrid360-tool-panel input[type="file"] {
+  display: block;
+  margin: 0.5rem 0 1rem;
+  max-width: 100%;
+}
+
+.autogrid360-inline-nav {
+  border-bottom: 1px solid currentColor;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+}
+
+.autogrid360-inline-nav h3 {
+  margin: 0 0 0.5rem;
+}
+
+.autogrid360-inline-nav > ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Listing-management page: keep the base theme plain while giving the page a clear hierarchy. */
+.autogrid360-listing-header {
+  margin-bottom: 1.5rem;
+}
+
+.autogrid360-listing-header h1 {
+  margin-bottom: 0.35rem;
+}
+
+.autogrid360-listing-management-meta {
+  margin: 0.35rem 0;
+}
+
+.autogrid360-listing-lifecycle-actions {
+  gap: 0.5rem 1rem;
+  margin-top: 0.75rem;
+}
+
+.autogrid360-listing-actions {
+  border-bottom: 1px solid currentColor;
+  border-top: 1px solid currentColor;
+  margin: 1.5rem 0;
+  padding: 1rem 0;
+}
+
+.autogrid360-listing-actions h2 {
+  margin-top: 0;
+}
+
+.autogrid360-listing-overview {
+  align-items: start;
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: minmax(0, 2fr) minmax(16rem, 1fr);
+  margin: 1.5rem 0 2rem;
+}
+
+.autogrid360-listing-overview h2 {
+  margin-top: 0;
+}
+
+.autogrid360-listing-overview-media .autogrid360-primary-image img {
+  display: block;
+  max-height: 34rem;
+}
+
+.autogrid360-listing-overview-details .autogrid360-listing-price {
+  font-size: 1.35rem;
+  margin: 0 0 1rem;
+}
+
+.autogrid360-listing-description p {
+  white-space: pre-line;
+}
+
+.autogrid360-image-management {
+  margin-top: 1.5rem;
+}
+
+.autogrid360-admin-listing-controls {
+  border-top: 1px solid currentColor;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+}
+
+.autogrid360-management-image-grid {
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 12rem));
+  justify-content: start;
+}
+
+.autogrid360-management-image-grid img {
+  aspect-ratio: 4 / 3;
+  display: block;
+  object-fit: cover;
+  width: 100%;
+}
+
+.autogrid360-management-image-grid li {
+  min-width: 0;
+}
+
+.autogrid360-primary-label {
+  display: block;
+  margin-top: 0.35rem;
+}
+
+.autogrid360-edit-heading {
+  margin-bottom: 0.5rem;
+}
+
+.autogrid360-edit-heading h1 {
+  margin: 0;
+}
+
+.autogrid360-image-carousel {
+  display: flex;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0.5rem 0 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  padding: 0 0 0.5rem;
+  scroll-snap-type: inline proximity;
+}
+
+.autogrid360-image-carousel li {
+  flex: 0 0 6.5rem;
+  scroll-snap-align: start;
+}
+
+.autogrid360-image-carousel a,
+.autogrid360-image-carousel img {
+  display: block;
+}
+
+.autogrid360-image-carousel img {
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  width: 100%;
+}
+
+.autogrid360-image-carousel li[aria-current="true"] img {
+  outline: 2px solid currentColor;
+  outline-offset: -2px;
+}
+
+@media (max-width: 52rem) {
+  .autogrid360-listing-overview {
+    grid-template-columns: 1fr;
+  }
+}
+
+.autogrid360-gallery-main-link {
+  cursor: zoom-in;
+  display: inline-block;
+  max-width: 100%;
+}
+
+.autogrid360-gallery-main-link img {
+  display: block;
+}
+
+.autogrid360-image-carousel a {
+  cursor: pointer;
+}
+
+.autogrid360-image-lightbox {
+  background: transparent;
+  border: 0;
+  box-sizing: border-box;
+  height: 100vh;
+  inset: 0;
+  margin: 0;
+  max-height: 100vh;
+  max-width: 100vw;
+  overflow: hidden;
+  padding: 3rem;
+  width: 100vw;
+}
+
+.autogrid360-image-lightbox::backdrop {
+  background: rgba(0, 0, 0, 0.88);
+}
+
+.autogrid360-image-lightbox[open] {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+}
+
+.autogrid360-image-lightbox__frame {
+  display: inline-block;
+  max-height: 100%;
+  max-width: 100%;
+}
+
+.autogrid360-image-lightbox__frame img {
+  display: block;
+  max-height: calc(100vh - 6rem);
+  max-width: calc(100vw - 6rem);
+  object-fit: contain;
+}
+
+.autogrid360-image-lightbox__frame .autogrid360-status-ribbon {
+  font-size: 1.1rem;
+}
+
+.autogrid360-image-lightbox__close {
+  align-items: center;
+  background: #fff;
+  border: 0;
+  border-radius: 50%;
+  color: #000;
+  cursor: pointer;
+  display: flex;
+  font-size: 2rem;
+  height: 2.5rem;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  position: absolute;
+  right: 0.75rem;
+  top: 0.75rem;
+  width: 2.5rem;
+  z-index: 4;
+}
+
+@media (max-width: 40rem) {
+  .autogrid360-image-lightbox {
+    padding: 3rem 0.75rem 0.75rem;
+  }
+
+  .autogrid360-image-lightbox__frame img {
+    max-height: calc(100vh - 3.75rem);
+    max-width: calc(100vw - 1.5rem);
+  }
+}

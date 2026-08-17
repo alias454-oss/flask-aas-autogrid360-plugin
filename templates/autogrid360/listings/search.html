@@ -1,0 +1,242 @@
+{% set sidebar_extra_template = "autogrid360/includes/public_nav.html" %}
+{% extends "plugins/base.html" %}
+
+{% block plugin_styles %}
+  <link rel="stylesheet" href="{{ url_for('autogrid360.static', filename='style.css') }}">
+  {% include "autogrid360/includes/seo_head.html" %}
+{% endblock %}
+
+{% block content %}
+  {% include "autogrid360/includes/public_nav_fallback.html" %}
+  <section class="content-page autogrid360-search-page">
+    <h1>Advanced Search</h1>
+
+    <form id="inventory-filters" class="autogrid360-search-filters" method="get" action="{{ url_for('autogrid360.search') }}">
+      <input type="hidden" name="apply" value="1">
+      <fieldset>
+        <legend>Vehicle</legend>
+        <div class="autogrid360-filter-grid">
+          <div class="form-group">
+            <label for="make">Make</label>
+            <select class="form-control" id="make" name="make">
+              <option value="">Any make</option>
+              {% for value in make_choices %}
+                <option value="{{ value.key }}"{% if filters.make == value.key %} selected{% endif %}>{{ value.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="model">Model</label>
+            <select class="form-control" id="model" name="model">
+              <option value="">Any model</option>
+              {% for value in model_choices %}
+                <option
+                  value="{{ value.value }}"
+                  data-make="{{ value.make_key }}"
+                  {% if filters.model == value.value %}selected{% endif %}
+                >{{ value.make_label }} — {{ value.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="min_year">Start year</label>
+            <select class="form-control" id="min_year" name="min_year">
+              <option value="">Any start year</option>
+              {% for year in year_choices %}
+                <option value="{{ year }}"{% if filters.min_year == year %} selected{% endif %}>{{ year }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="max_year">End year</label>
+            <select class="form-control" id="max_year" name="max_year">
+              <option value="">Through newest</option>
+              {% for year in year_choices %}
+                <option value="{{ year }}"{% if filters.max_year == year %} selected{% endif %}>{{ year }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="vehicle_type">Vehicle type</label>
+            <select class="form-control" id="vehicle_type" name="vehicle_type">
+              <option value="">Any type</option>
+              {% for value in vehicle_type_choices %}
+                <option value="{{ value.key }}"{% if filters.vehicle_type == value.key %} selected{% endif %}>{{ value.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="drivetrain">Drivetrain</label>
+            <select class="form-control" id="drivetrain" name="drivetrain">
+              <option value="">Any drivetrain</option>
+              {% for value in drivetrain_choices %}
+                <option value="{{ value.key }}"{% if filters.drivetrain == value.key %} selected{% endif %}>{{ value.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="condition">Condition</label>
+            <select class="form-control" id="condition" name="condition">
+              <option value="">Any condition</option>
+              {% for value in condition_choices %}
+                <option value="{{ value }}"{% if filters.condition|lower == value|lower %} selected{% endif %}>{{ value }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="transmission">Transmission</label>
+            <select class="form-control" id="transmission" name="transmission">
+              <option value="">Any transmission</option>
+              {% for value in transmission_choices %}
+                <option value="{{ value }}"{% if filters.transmission|lower == value|lower %} selected{% endif %}>{{ value }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Price</legend>
+        <div class="autogrid360-filter-grid">
+          <div class="form-group">
+            <label for="min_price">Minimum price</label>
+            <input
+              class="form-control"
+              id="min_price"
+              name="min_price"
+              type="number"
+              min="0"
+              step="0.01"
+              value="{{ filters.min_price if filters.min_price is not none else '' }}"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="max_price">Maximum price</label>
+            <input
+              class="form-control"
+              id="max_price"
+              name="max_price"
+              type="number"
+              min="0"
+              step="0.01"
+              value="{{ filters.max_price if filters.max_price is not none else '' }}"
+            >
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Seller and Listing Location</legend>
+        <div class="autogrid360-filter-grid">
+          <div class="form-group">
+            <label for="seller">Seller</label>
+            <select class="form-control" id="seller" name="seller">
+              <option value="">Any seller</option>
+              {% for seller in seller_choices %}
+                <option value="{{ seller.username }}"{% if filters.seller|lower == seller.username|lower %} selected{% endif %}>{{ seller.username }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div>
+            <div class="form-group">
+              <label for="country_code">Country</label>
+              <select class="form-control" id="country_code" name="country_code">
+                <option value="">Any country</option>
+                {% for code, label in location_country_choices %}
+                  <option value="{{ code }}"{% if filters.country_code == code %} selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="zone_code">Region / Subdivision</label>
+              <select class="form-control" id="zone_code" name="zone_code">
+                <option value="">Any region / subdivision</option>
+                {% for zone in location_zone_choices %}
+                  <option
+                    value="{{ zone.code }}"
+                    data-country="{{ zone.country_code }}"
+                    {% if filters.zone_code == zone.code %}selected{% endif %}
+                  >{{ zone.label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Radius Search</legend>
+        <div class="autogrid360-filter-grid">
+          <div class="form-group">
+            <label for="postal_country">Radius origin country</label>
+            <select class="form-control" id="postal_country" name="postal_country">
+              <option value="">Choose country</option>
+              {% for code, label in postal_country_choices %}
+                <option value="{{ code }}"{% if filters.postal_country == code %} selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="postal_code">Radius origin postal code</label>
+            <input class="form-control" id="postal_code" name="postal_code" type="text" value="{{ filters.postal_code }}" maxlength="20">
+          </div>
+
+          <div class="form-group">
+            <label for="radius">Radius</label>
+            <select class="form-control" id="radius" name="radius">
+              {% for distance in radius_options %}
+                <option value="{{ distance }}"{% if filters.radius == distance or (filters.radius is none and distance == 50) %} selected{% endif %}>{{ distance }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="distance_unit">Distance unit</label>
+            <select class="form-control" id="distance_unit" name="distance_unit">
+              <option value="auto"{% if selected_distance_unit == 'auto' %} selected{% endif %}>Auto{% if effective_distance_unit %} ({{ 'miles' if effective_distance_unit == 'miles' else 'kilometers' }}){% endif %}</option>
+              <option value="miles"{% if selected_distance_unit == 'miles' %} selected{% endif %}>Miles</option>
+              <option value="kilometers"{% if selected_distance_unit == 'kilometers' %} selected{% endif %}>Kilometers</option>
+            </select>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Features</legend>
+        <p class="form-help">All selected features must match.</p>
+        <div class="autogrid360-feature-filter-grid">
+          {% for value in feature_choices %}
+            <label class="checkbox-inline">
+              <input
+                type="checkbox"
+                name="feature"
+                value="{{ value.key }}"
+                {% if value.key in filters.feature %}checked{% endif %}
+              >
+              {{ value.label }}
+            </label>
+            {% endfor %}
+        </div>
+      </fieldset>
+
+      <div class="actions autogrid360-filter-actions">
+        <button class="button" type="submit">Search Inventory</button>
+        <a href="{{ url_for('autogrid360.search') }}">Clear</a>
+      </div>
+    </form>
+
+  </section>
+  <script src="{{ url_for('autogrid360.static', filename='models.js') }}"></script>
+  <script src="{{ url_for('autogrid360.static', filename='search.js') }}"></script>
+{% endblock %}

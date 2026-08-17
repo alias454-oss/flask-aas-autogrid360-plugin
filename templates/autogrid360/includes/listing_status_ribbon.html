@@ -1,0 +1,5 @@
+{% if listing.status == 'sale_pending' %}
+  <span class="autogrid360-status-ribbon autogrid360-status-ribbon--pending" aria-hidden="true"><span class="autogrid360-status-ribbon__label">Pending</span></span>
+{% elif listing.status == 'sold' %}
+  <span class="autogrid360-status-ribbon autogrid360-status-ribbon--sold" aria-hidden="true"><span class="autogrid360-status-ribbon__label">Sold</span></span>
+{% endif %}

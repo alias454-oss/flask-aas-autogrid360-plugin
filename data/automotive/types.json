@@ -1,0 +1,16 @@
+[
+  {"key":"4x4","label":"4X4"},
+  {"key":"convertible","label":"Convertible"},
+  {"key":"coupe","label":"Coupe"},
+  {"key":"motorcycle","label":"Motorcycle"},
+  {"key":"pickup","label":"Pickup"},
+  {"key":"quad-runner","label":"Quad-Runner"},
+  {"key":"scooter","label":"Scooter"},
+  {"key":"sedan","label":"Sedan"},
+  {"key":"snowmobile","label":"Snowmobile"},
+  {"key":"sports","label":"Sports"},
+  {"key":"station-wagon","label":"Station Wagon"},
+  {"key":"suv","label":"SUV"},
+  {"key":"truck","label":"Truck"},
+  {"key":"van","label":"Van"}
+]

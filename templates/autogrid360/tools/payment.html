@@ -1,0 +1,122 @@
+{% set sidebar_extra_template = "autogrid360/includes/public_nav.html" %}
+{% extends "plugins/base.html" %}
+
+{% block plugin_styles %}
+  <link rel="stylesheet" href="{{ url_for('autogrid360.static', filename='style.css') }}">
+  {% include "autogrid360/includes/seo_head.html" %}
+{% endblock %}
+
+{% block content %}
+  {% include "autogrid360/includes/public_nav_fallback.html" %}
+  <section class="content-page autogrid360-payment-page">
+    <h1>Vehicle Payment Calculator</h1>
+
+    {% if listing %}
+      <p>
+        Calculating from
+        <a href="{{ autogrid360_listing_url(listing) }}">{{ listing.title }}</a>.
+      </p>
+    {% endif %}
+
+    <p class="form-help">
+      Estimates are informational only. Actual financing terms, taxes, fees, insurance, and lender calculations may differ.
+    </p>
+
+    <form id="payment-calculator" method="post" novalidate>
+      {{ form.hidden_tag() }}
+
+      <fieldset>
+        <legend>Financing</legend>
+
+        <div class="form-group">
+          {{ form.amount.label }}
+          {{ form.amount(class_="form-control", min=0, step='0.01') }}
+          {% for error in form.amount.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        </div>
+
+        <div class="form-group">
+          {{ form.down_payment.label }}
+          {{ form.down_payment(class_="form-control", min=0, step='0.01') }}
+          {% for error in form.down_payment.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        </div>
+
+        <div class="form-group">
+          {{ form.annual_interest_rate.label }}
+          {{ form.annual_interest_rate(class_="form-control", min=0, max=100, step='0.001') }}
+          {% for error in form.annual_interest_rate.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        </div>
+
+        <div class="form-group">
+          {{ form.loan_years.label }}
+          {{ form.loan_years(class_="form-control") }}
+          {% for error in form.loan_years.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        </div>
+
+        <div class="form-group">
+          {{ form.frequency.label }}
+          {{ form.frequency(class_="form-control") }}
+          {% for error in form.frequency.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        </div>
+
+        <div class="checkbox-inline">
+          <label for="{{ form.show_schedule.id }}">
+            {{ form.show_schedule() }}
+            {{ form.show_schedule.label.text }}
+          </label>
+        </div>
+      </fieldset>
+
+      <div class="form-group">
+        {{ form.submit() }}
+      </div>
+    </form>
+
+    {% if result %}
+      <section class="autogrid360-payment-result" aria-labelledby="payment-result-heading">
+        <h2 id="payment-result-heading">Estimated Payment</h2>
+        <dl class="autogrid360-specs">
+          <dt>Vehicle amount</dt><dd>{{ result.amount|autogrid360_currency }}</dd>
+          <dt>Down payment</dt><dd>{{ result.down_payment|autogrid360_currency }}</dd>
+          <dt>Amount financed</dt><dd>{{ result.principal|autogrid360_currency }}</dd>
+          <dt>Loan length</dt><dd>{{ result.loan_years }} year{% if result.loan_years != 1 %}s{% endif %}</dd>
+          <dt>APR</dt><dd>{{ result.annual_interest_rate }}%</dd>
+          <dt>Payment terms</dt><dd>{{ result.frequency_label }}</dd>
+          <dt>Number of payments</dt><dd>{{ result.payment_count }}</dd>
+          <dt>Estimated payment</dt><dd><strong>{{ result.payment|autogrid360_currency }}</strong></dd>
+          <dt>Estimated total interest</dt><dd>{{ result.total_interest|autogrid360_currency }}</dd>
+          <dt>Estimated total of payments</dt><dd>{{ result.total_paid|autogrid360_currency }}</dd>
+        </dl>
+      </section>
+
+      {% if result.schedule %}
+        <section class="autogrid360-amortization" aria-labelledby="amortization-heading">
+          <h2 id="amortization-heading">Amortization Schedule</h2>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th scope="col">Payment</th>
+                  <th scope="col">Amount</th>
+                  <th scope="col">Principal</th>
+                  <th scope="col">Interest</th>
+                  <th scope="col">Balance</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in result.schedule %}
+                  <tr>
+                    <td>{{ row.number }}</td>
+                    <td>{{ row.payment|autogrid360_currency }}</td>
+                    <td>{{ row.principal|autogrid360_currency }}</td>
+                    <td>{{ row.interest|autogrid360_currency }}</td>
+                    <td>{{ row.balance|autogrid360_currency }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      {% endif %}
+    {% endif %}
+  </section>
+{% endblock %}

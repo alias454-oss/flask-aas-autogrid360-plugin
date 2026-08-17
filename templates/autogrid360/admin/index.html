@@ -1,0 +1,41 @@
+{% extends "autogrid360/admin/base.html" %}
+
+
+{% block autogrid360_admin_content %}
+  <section class="content-page content-page--wide autogrid360-admin-page">
+    <h1>AutoGrid360 Administration</h1>
+
+    <h2>Overview</h2>
+    <div class="autogrid360-admin-stats">
+      <div class="panel"><strong>{{ people_count }}</strong><span>People</span></div>
+      <div class="panel"><strong>{{ seller_count }}</strong><span>Sellers</span></div>
+      <div class="panel"><strong>{{ total_managed }}</strong><span>Total Managed</span></div>
+    </div>
+
+    <h2>Inventory</h2>
+    <div class="autogrid360-admin-stats">
+      <div class="panel"><strong>{{ counts.pending }}</strong><span>Pending</span></div>
+      <div class="panel"><strong>{{ counts.active }}</strong><span>Active</span></div>
+      <div class="panel"><strong>{{ counts.sale_pending }}</strong><span>Sale Pending</span></div>
+      <div class="panel"><strong>{{ counts.sold }}</strong><span>Sold</span></div>
+      <div class="panel"><strong>{{ counts.expired }}</strong><span>Expired</span></div>
+      <div class="panel"><strong>{{ counts.removed }}</strong><span>Removed</span></div>
+      <div class="panel"><strong>{{ counts.draft }}</strong><span>Drafts</span></div>
+    </div>
+
+    <h2>Pending Review</h2>
+    {% if recent_pending %}
+      <ul class="autogrid360-admin-pending-list">
+        {% for listing in recent_pending %}
+          <li>
+            <a href="{{ url_for('autogrid360_listings.detail', listing_id=listing.id) }}">{{ listing.title }}</a>
+            — {{ listing.seller.username }}
+          </li>
+        {% endfor %}
+      </ul>
+      <p><a href="{{ url_for('autogrid360_admin.pending') }}">View full pending queue</a></p>
+    {% else %}
+      <p>No listings are awaiting review.</p>
+    {% endif %}
+  </section>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% if primary_image %}
+  <div class="autogrid360-primary-image autogrid360-status-ribbon-frame" data-autogrid360-gallery>
+    <a
+      href="{{ url_for('autogrid360_images.file', listing_id=listing.id, image_id=primary_image.id, variant='display') }}"
+      class="autogrid360-gallery-main-link"
+      data-autogrid360-gallery-main-link
+      aria-label="Open larger image for {{ listing.title }}"
+    >
+      <img
+        src="{{ url_for('autogrid360_images.file', listing_id=listing.id, image_id=primary_image.id, variant='display') }}"
+        alt="Primary image for {{ listing.title }}"
+        data-autogrid360-gallery-main-image
+      >
+    </a>
+    {% include "autogrid360/includes/listing_status_ribbon.html" %}
+  </div>
+{% else %}
+  <div class="autogrid360-image-placeholder">No listing image available.</div>
+{% endif %}
+
+{% if primary_image and listing.images|length > 1 %}
+  <ol class="autogrid360-image-carousel" aria-label="Listing image thumbnails">
+    {% for image in listing.images %}
+      <li{% if image.id == primary_image.id %} aria-current="true"{% endif %}>
+        <a
+          href="{{ url_for('autogrid360_images.file', listing_id=listing.id, image_id=image.id, variant='display') }}"
+          data-autogrid360-gallery-thumbnail
+          data-display-url="{{ url_for('autogrid360_images.file', listing_id=listing.id, image_id=image.id, variant='display') }}"
+          data-image-alt="Image {{ loop.index }} for {{ listing.title }}"
+        >
+          <img
+            src="{{ url_for('autogrid360_images.file', listing_id=listing.id, image_id=image.id, variant='thumb') }}"
+            alt="Image {{ loop.index }} for {{ listing.title }}"
+          >
+        </a>
+      </li>
+    {% endfor %}
+  </ol>
+{% endif %}
+
+{% if primary_image %}
+  <dialog class="autogrid360-image-lightbox" data-autogrid360-image-lightbox aria-label="Larger listing image">
+    <form method="dialog">
+      <button class="autogrid360-image-lightbox__close" type="submit" aria-label="Close image">&times;</button>
+    </form>
+    <div class="autogrid360-image-lightbox__frame autogrid360-status-ribbon-frame">
+      <img
+        src="{{ url_for('autogrid360_images.file', listing_id=listing.id, image_id=primary_image.id, variant='display') }}"
+        alt="Primary image for {{ listing.title }}"
+        data-autogrid360-image-lightbox-image
+      >
+      {% include "autogrid360/includes/listing_status_ribbon.html" %}
+    </div>
+  </dialog>
+{% endif %}

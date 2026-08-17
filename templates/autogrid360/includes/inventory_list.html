@@ -1,0 +1,86 @@
+<div id="inventory-results" class="autogrid360-inventory-results">
+  {% if listings %}
+    <div class="table-wrap">
+      <table id="inventory-results-controls" class="data-table">
+        <thead>
+          <tr>
+            <th>Photo</th>
+            <th>Listing</th>
+            {% for key in ['make', 'model', 'year', 'price'] %}
+              {% set control = sort_controls[key] %}
+              <th{% if control.aria_sort != 'none' %} aria-sort="{{ control.aria_sort }}"{% endif %}>
+                <a href="{{ control.url }}">{{ control.label }}{% if control.arrow %} {{ control.arrow }}{% endif %}</a>
+              </th>
+            {% endfor %}
+            <th>Location</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for listing in listings %}
+            {% set inventory_image = primary_images.get(listing.id) %}
+            <tr>
+              <td class="autogrid360-inventory-photo">
+                <div class="autogrid360-status-ribbon-frame autogrid360-inventory-ribbon-frame">
+                  {% if inventory_image %}
+                    <a href="{{ autogrid360_listing_url(listing) }}" aria-label="View {{ listing.title }}">
+                      <img
+                        class="autogrid360-inventory-thumb"
+                        src="{{ url_for('autogrid360_images.file', listing_id=listing.id, image_id=inventory_image.id, variant='thumb') }}"
+                        alt="{{ listing.title }}"
+                        width="120"
+                        height="80"
+                        loading="lazy"
+                      >
+                    </a>
+                  {% else %}
+                    <span class="autogrid360-inventory-thumb-placeholder">No photo</span>
+                  {% endif %}
+                  {% include "autogrid360/includes/listing_status_ribbon.html" %}
+                </div>
+              </td>
+              <td>
+                <a href="{{ autogrid360_listing_url(listing) }}">{{ listing.title }}</a>
+                {% if listing.status == 'sale_pending' %}<br><small><strong>Sale Pending</strong></small>{% elif listing.status == 'sold' %}<br><small><strong>Sold</strong></small>{% endif %}
+              </td>
+              <td>{{ listing.vehicle.make }}</td>
+              <td>{{ listing.vehicle.model }}{% if listing.vehicle.trim %} {{ listing.vehicle.trim }}{% endif %}</td>
+              <td>{{ listing.vehicle.year if listing.vehicle.year else '—' }}</td>
+              <td>{% if listing.price is not none %}{{ listing.price|autogrid360_currency }}{% else %}—{% endif %}</td>
+              <td>
+                {% if listing.public_location %}{{ listing.public_location }}{% else %}—{% endif %}
+                {% if listing.id in distance_by_id %}
+                  <br>{{ "%.1f"|format(distance_by_id[listing.id]) }} {{ "miles" if effective_distance_unit == "miles" else "km" }} away
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <nav class="pagination" aria-label="Listings per page">
+      <span>Listings per page:</span>
+      {% for control in page_size_controls %}
+        {% if control.active %}
+          <strong aria-current="true">{{ control.label }}</strong>
+        {% else %}
+          <a href="{{ control.url }}">{{ control.label }}</a>
+        {% endif %}
+      {% endfor %}
+    </nav>
+
+    {% if pagination.pages > 1 %}
+      <nav class="pagination" aria-label="Vehicle inventory pages">
+        {% if previous_url %}
+          <a href="{{ previous_url }}">Previous</a>
+        {% endif %}
+        <span>Page {{ pagination.page }} of {{ pagination.pages }}</span>
+        {% if next_url %}
+          <a href="{{ next_url }}">Next</a>
+        {% endif %}
+      </nav>
+    {% endif %}
+  {% else %}
+    <p>{{ empty_message | default('No public listings are available right now.') }}</p>
+  {% endif %}
+</div>

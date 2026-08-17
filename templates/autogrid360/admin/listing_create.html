@@ -1,0 +1,59 @@
+{% extends "autogrid360/admin/base.html" %}
+
+
+{% block autogrid360_admin_content %}
+  <section class="content-page autogrid360-form-page">
+    <h1>Create Seller Listing</h1>
+    <p>This creates a draft owned by the selected user.</p>
+
+    <form method="post" novalidate data-autogrid360-location-form data-geo-lookup-url="{{ url_for('autogrid360.geo_lookup') }}">
+      {{ form.hidden_tag() }}
+
+      <fieldset>
+        <legend>Seller</legend>
+        <div class="form-group">
+          {{ form.seller_username.label }}
+          {{ form.seller_username(class_="form-control") }}
+          {% for error in form.seller_username.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Listing</legend>
+        <div class="form-group">
+          {{ form.title.label }}
+          {{ form.title(class_="form-control") }}
+          {% for error in form.title.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        </div>
+        <div class="form-group">
+          {{ form.price.label }}
+          {{ form.price(class_="form-control") }}
+          {% for error in form.price.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        </div>
+        <div class="form-group">
+          {{ form.description.label }}
+          {{ form.description(class_="form-control", rows=8) }}
+          {% for error in form.description.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Vehicle</legend>
+        {% include "autogrid360/includes/listing_vehicle_fields.html" %}
+      </fieldset>
+
+      <fieldset>
+        <legend>Location</legend>
+        {% include "autogrid360/includes/location_fields.html" %}
+      </fieldset>
+
+      <div class="form-group">
+        {{ form.submit() }}
+      </div>
+    </form>
+  </section>
+  <script src="{{ url_for('autogrid360.static', filename='models.js') }}"></script>
+  <script src="{{ url_for('autogrid360.static', filename='editor.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/location_fields.js') }}" defer></script>
+  <script src="{{ url_for('autogrid360.static', filename='location.js') }}" defer></script>
+{% endblock %}

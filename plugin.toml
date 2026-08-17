@@ -1,0 +1,8 @@
+[plugin]
+id = "autogrid360"
+name = "AutoGrid360"
+navigation_label = "AutoGrid360"
+version = "0.1.0"
+api_version = 1
+entrypoint = "app.plugins.autogrid360.plugin:plugin"
+migrations = "migrations"

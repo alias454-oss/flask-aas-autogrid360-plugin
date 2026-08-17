@@ -1,0 +1,11 @@
+{% extends "plugins/base.html" %}
+
+{% block plugin_styles %}
+  <link rel="stylesheet" href="{{ url_for('autogrid360.static', filename='style.css') }}">
+{% endblock %}
+
+{% block content %}
+  <div id="autogrid360-admin-content" class="autogrid360-admin-main">
+    {% block autogrid360_admin_content %}{% endblock %}
+  </div>
+{% endblock %}

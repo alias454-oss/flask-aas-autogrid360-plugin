@@ -1,0 +1,41 @@
+{% extends "autogrid360/admin/base.html" %}
+
+
+{% block autogrid360_admin_content %}
+  <section class="content-page content-page--wide autogrid360-admin-page">
+    <p><a href="{{ url_for('autogrid360_reference.models', make_id=make.id) }}">Back to {{ make.label }} Models</a></p>
+    <h1>Edit Vehicle Model</h1>
+    <p>
+      Make: {{ make.label }} &middot; Stable key: <code>{{ model.key }}</code> &middot; Database ID: {{ model.id }}.
+      The key and ID are intentionally immutable; changing the label only changes presentation.
+    </p>
+
+    <form method="post" class="content-page content-page--narrow autogrid360-reference-form" novalidate>
+      {{ form.hidden_tag() }}
+
+      <fieldset>
+        <legend>Vehicle Model</legend>
+        <div class="form-group">
+          {{ form.label.label }}
+          {{ form.label(class_="form-control") }}
+          {% for error in form.label.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        </div>
+        <div class="form-group">
+          {{ form.sort_order.label }}
+          {{ form.sort_order(class_="form-control") }}
+          {% for error in form.sort_order.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        </div>
+        <div class="checkbox-inline">
+          <label for="{{ form.active.id }}">
+            {{ form.active() }}
+            {{ form.active.label.text }}
+          </label>
+        </div>
+      </fieldset>
+
+      <div class="form-group">
+        {{ form.submit() }}
+      </div>
+    </form>
+  </section>
+{% endblock %}

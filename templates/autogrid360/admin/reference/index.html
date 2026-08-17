@@ -1,0 +1,23 @@
+{% extends "autogrid360/admin/base.html" %}
+
+
+{% block autogrid360_admin_content %}
+  <section class="content-page content-page--wide autogrid360-admin-page">
+    <h1>AutoGrid360 Reference Data</h1>
+    <p>
+      Manage the live automotive reference values used by AutoGrid360. Packaged server
+      datasets are initialized by the site administrator from the Applications
+      page; database IDs are never derived from file order or reused for a different value.
+    </p>
+
+    <div class="autogrid360-reference-grid">
+      {% for item in categories %}
+        <article class="panel">
+          <h2><a href="{{ url_for('autogrid360_reference.values', slug=item.slug) }}">{{ item.label }}</a></h2>
+          <p>{{ counts[item.slug].active }} active / {{ counts[item.slug].total }} total</p>
+          <p><code>{{ item.filename }}</code></p>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

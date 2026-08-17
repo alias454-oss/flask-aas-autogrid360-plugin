@@ -1,0 +1,11 @@
+{% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
+{% set feed_href = rss_feed_url if rss_feed_url is defined and rss_feed_url else url_for("autogrid360.inventory_feed", _external=True) %}
+<link rel="alternate" type="application/rss+xml" title="AutoGrid360 Inventory Feed" href="{{ feed_href }}">
+{% if robots_meta %}<meta name="robots" content="{{ robots_meta }}">{% endif %}
+{% if seo_title %}<meta property="og:title" content="{{ seo_title }}">{% endif %}
+{% if description %}<meta property="og:description" content="{{ description }}">{% endif %}
+{% if canonical_url %}<meta property="og:url" content="{{ canonical_url }}">{% endif %}
+{% if seo_type %}<meta property="og:type" content="{{ seo_type }}">{% endif %}
+{% if seo_image_url %}<meta property="og:image" content="{{ seo_image_url }}">{% endif %}
+{% if seo_title %}<meta name="twitter:card" content="{% if seo_image_url %}summary_large_image{% else %}summary{% endif %}">{% endif %}
+{% if structured_data %}<script type="application/ld+json" nonce="{{ nonce }}">{{ structured_data|tojson }}</script>{% endif %}

@@ -1,0 +1,84 @@
+{% extends "autogrid360/admin/base.html" %}
+
+{% block autogrid360_admin_content %}
+  <section class="content-page autogrid360-admin-transfer-page">
+    <h1>AutoGrid360 Backup / Restore</h1>
+
+    <p>
+      A full AutoGrid360 inventory backup contains seller presentation profiles, complete listing/vehicle
+      inventory, lifecycle state and history, stable portable listing identities, and listing images.
+      Host-account passwords, sessions, MFA material, roles, account email, and other host identity data
+      are not included.
+    </p>
+
+    <section class="panel autogrid360-tool-panel">
+      <h2>Full Backup</h2>
+      <p>
+        Export every AutoGrid360 seller profile and listing across the installation. Seller ownership
+        is represented by username so the backup can be restored to matching host users or
+        explicitly remapped onto renamed destination accounts.
+      </p>
+      <p>
+        <a class="button" href="{{ url_for('autogrid360_admin.inventory_export_all') }}">
+          Download Full Inventory Backup
+        </a>
+      </p>
+    </section>
+
+    <section class="panel autogrid360-tool-panel">
+      <h2>Restore Backup</h2>
+      <p>
+        Normal restore preserves Draft, Pending Review, Active, Sale Pending, Sold, Expired, and
+        Removed states together with publication/expiration/sold history, featured state, view count,
+        portable IDs, and images. Destination database IDs and reference IDs are rebuilt locally.
+      </p>
+      <p>
+        Source usernames map to destination host users with the same username automatically.
+        For renamed accounts, enter one <code>source=destination</code> mapping per line. Every source
+        seller must map to an existing, distinct destination user. AutoGrid360 never creates or
+        restores host accounts.
+      </p>
+
+      <form method="post" enctype="multipart/form-data" action="{{ url_for('autogrid360_admin.inventory_restore') }}" novalidate>
+        {{ form.hidden_tag() }}
+        <fieldset>
+          <legend>Restore Bundle</legend>
+          <div class="form-group">
+            {{ form.bundle.label }}
+            {{ form.bundle() }}
+            {% for error in form.bundle.errors %}
+              <p class="form-error">{{ error }}</p>
+            {% endfor %}
+          </div>
+
+          <div class="form-group">
+            {{ form.seller_mapping.label }}
+            {{ form.seller_mapping(class_="form-control", rows=6, placeholder="old-seller=new-seller") }}
+            {% for error in form.seller_mapping.errors %}
+              <p class="form-error">{{ error }}</p>
+            {% endfor %}
+            <p class="form-help">
+              Optional. Leave blank when source usernames already exist on this host installation.
+            </p>
+          </div>
+
+          <div class="checkbox-inline">
+            <label for="{{ form.as_draft.id }}">
+              {{ form.as_draft() }}
+              {{ form.as_draft.label.text }}
+            </label>
+          </div>
+          <p class="form-help">
+            Explicit content-ingestion mode only. This discards source publication/lifecycle state,
+            featured state, view counts, and source listing timestamps instead of performing a
+            faithful restore.
+          </p>
+        </fieldset>
+
+        <div class="form-group">
+          {{ form.submit() }}
+        </div>
+      </form>
+    </section>
+  </section>
+{% endblock %}

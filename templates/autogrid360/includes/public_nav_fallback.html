@@ -1,0 +1,6 @@
+{% set effective_sidebar_position = sidebar_position | default('right') %}
+{% if effective_sidebar_position not in ['left', 'right'] %}
+  <nav class="autogrid360-inline-nav" aria-label="{{ autogrid360_navigation_label }} navigation">
+    {% include "autogrid360/includes/public_nav.html" %}
+  </nav>
+{% endif %}

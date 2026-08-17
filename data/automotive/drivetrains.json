@@ -1,0 +1,6 @@
+[
+  {"key":"fwd","label":"Front Wheel Drive"},
+  {"key":"rwd","label":"Rear Wheel Drive"},
+  {"key":"awd","label":"All Wheel Drive"},
+  {"key":"4wd","label":"Four Wheel Drive"}
+]

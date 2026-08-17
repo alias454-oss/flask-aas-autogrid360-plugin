@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>{{ channel_title }}</title>
+    <link>{{ channel_link }}</link>
+    <description>{{ channel_description }}</description>
+    <atom:link href="{{ self_url }}" rel="self" type="application/rss+xml" />
+    <generator>AutoGrid360</generator>
+    {% for item in items %}
+    <item>
+      <title>{{ item.title }}</title>
+      <link>{{ item.link }}</link>
+      <guid isPermaLink="false">urn:autogrid360:listing:{{ item.guid }}</guid>
+      <pubDate>{{ item.pub_date }}</pubDate>
+      <description>{{ item.description }}</description>
+    </item>
+    {% endfor %}
+  </channel>
+</rss>

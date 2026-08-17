@@ -1,0 +1,208 @@
+{% set sidebar_extra_template = "autogrid360/includes/public_nav.html" %}
+{% extends "plugins/base.html" %}
+
+{% block plugin_styles %}
+  <link rel="stylesheet" href="{{ url_for('autogrid360.static', filename='style.css') }}">
+{% endblock %}
+
+{% block content %}
+  {% include "autogrid360/includes/public_nav_fallback.html" %}
+  <article id="listing-management" class="content-page autogrid360-listing autogrid360-listing-management">
+    <div class="autogrid360-listing-utility-row">
+      {% if is_admin and not is_owner %}
+        <a href="{{ url_for('autogrid360_admin.inventory') }}">Back to inventory</a>
+      {% else %}
+        <a href="{{ url_for('autogrid360_listings.mine') }}">Back to My Listings</a>
+      {% endif %}
+
+      <nav class="autogrid360-listing-owner-controls" aria-label="Listing management navigation">
+        <small>
+          <a href="{{ url_for('autogrid360_listings.edit', listing_id=listing.id) }}">Edit Listing</a>
+          {% if can_view_public %}
+            &middot;
+            <a href="{{ autogrid360_listing_url(listing) }}">View Public Listing</a>
+          {% endif %}
+        </small>
+      </nav>
+    </div>
+
+    <header class="autogrid360-listing-header">
+      <h1 class="autogrid360-listing-title">{{ listing.title }}</h1>
+      <p class="autogrid360-listing-management-meta"><strong>Status:</strong> {{ listing.status_label }}</p>
+    </header>
+
+    {% if can_submit or can_delete or can_approve or can_relist or can_mark_sale_pending or can_make_available or can_mark_sold or can_remove or can_expire %}
+      <section class="autogrid360-listing-actions" aria-labelledby="listing-actions-heading">
+        <h2 id="listing-actions-heading">Listing Actions</h2>
+        <div class="actions autogrid360-listing-lifecycle-actions">
+          {% if can_submit %}
+            <form method="post" action="{{ url_for('autogrid360_listings.submit', listing_id=listing.id) }}">
+              {{ submit_form.hidden_tag() }}
+              {{ submit_form.submit() }}
+            </form>
+          {% endif %}
+
+          {% if can_approve %}
+            <form method="post" action="{{ url_for('autogrid360_listings.approve', listing_id=listing.id) }}">
+              {{ approve_form.hidden_tag() }}
+              {{ approve_form.submit() }}
+            </form>
+          {% endif %}
+
+          {% if can_relist %}
+            <form method="post" action="{{ url_for('autogrid360_listings.relist', listing_id=listing.id) }}">
+              {{ relist_form.hidden_tag() }}
+              {{ relist_form.submit() }}
+            </form>
+          {% endif %}
+
+          {% if can_mark_sale_pending %}
+            <form method="post" action="{{ url_for('autogrid360_listings.mark_sale_pending', listing_id=listing.id) }}">
+              {{ mark_sale_pending_form.hidden_tag() }}
+              {{ mark_sale_pending_form.submit() }}
+            </form>
+          {% endif %}
+
+          {% if can_make_available %}
+            <form method="post" action="{{ url_for('autogrid360_listings.make_available', listing_id=listing.id) }}">
+              {{ make_available_form.hidden_tag() }}
+              {{ make_available_form.submit() }}
+            </form>
+          {% endif %}
+
+          {% if can_mark_sold %}
+            <form method="post" action="{{ url_for('autogrid360_listings.mark_sold', listing_id=listing.id) }}">
+              {{ mark_sold_form.hidden_tag() }}
+              {{ mark_sold_form.submit() }}
+            </form>
+          {% endif %}
+
+          {% if can_expire %}
+            <form method="post" action="{{ url_for('autogrid360_listings.expire', listing_id=listing.id) }}">
+              {{ expire_form.hidden_tag() }}
+              {{ expire_form.submit() }}
+            </form>
+          {% endif %}
+
+          {% if can_remove %}
+            <form method="post" action="{{ url_for('autogrid360_listings.remove', listing_id=listing.id) }}">
+              {{ remove_form.hidden_tag() }}
+              {{ remove_form.submit() }}
+            </form>
+          {% endif %}
+
+          {% if can_delete %}
+            <form method="post" action="{{ url_for('autogrid360_listings.delete', listing_id=listing.id) }}">
+              {{ delete_form.hidden_tag() }}
+              {{ delete_form.submit() }}
+            </form>
+          {% endif %}
+        </div>
+
+        {% if can_relist %}
+          {% if listing.changed_since_expiration %}
+            <p class="form-help">This listing changed after it expired and will follow the current approval policy when relisted.</p>
+          {% else %}
+            <p class="form-help">This listing has not changed since expiration and can return directly to active inventory if normal publication eligibility still allows it.</p>
+          {% endif %}
+        {% endif %}
+      </section>
+    {% endif %}
+
+    <div class="autogrid360-listing-overview">
+      <section class="autogrid360-listing-overview-media" aria-labelledby="listing-images-heading">
+        <h2 id="listing-images-heading">Images</h2>
+
+        {% include "autogrid360/includes/listing_gallery.html" %}
+
+        {% if listing.description %}
+          <section class="autogrid360-listing-description" aria-labelledby="listing-description-heading">
+            <h2 id="listing-description-heading">Description</h2>
+            <p>{{ listing.description }}</p>
+          </section>
+        {% endif %}
+      </section>
+
+      <section class="autogrid360-listing-overview-details" aria-labelledby="listing-details-heading">
+        <h2 id="listing-details-heading">Listing Details</h2>
+
+        {% if listing.price is not none %}
+          <p class="autogrid360-listing-price">{{ listing.price|autogrid360_currency }}</p>
+        {% endif %}
+
+        <dl class="autogrid360-specs">
+          <dt>Vehicle</dt>
+          <dd>
+            {% if listing.vehicle.year %}{{ listing.vehicle.year }} {% endif %}{{ listing.vehicle.make }} {{ listing.vehicle.model }}{% if listing.vehicle.trim %} {{ listing.vehicle.trim }}{% endif %}
+          </dd>
+
+          {% if listing.listed_at %}<dt>Listed</dt><dd>{{ listing.listed_at.strftime("%B %d, %Y") }}</dd>{% endif %}
+          {% if listing.vehicle.vehicle_type %}<dt>Type</dt><dd>{{ listing.vehicle.vehicle_type }}</dd>{% endif %}
+          {% if listing.vehicle.condition %}<dt>Condition</dt><dd>{{ listing.vehicle.condition }}</dd>{% endif %}
+          {% if listing.vehicle.mileage is not none %}<dt>Mileage</dt><dd>{{ "{:,}".format(listing.vehicle.mileage) }}</dd>{% endif %}
+          {% if listing.vehicle.exterior_color %}<dt>Exterior color</dt><dd>{{ listing.vehicle.exterior_color }}</dd>{% endif %}
+          {% if listing.vehicle.doors is not none %}<dt>Doors</dt><dd>{{ listing.vehicle.doors }}</dd>{% endif %}
+          {% if listing.vehicle.engine %}<dt>Engine</dt><dd>{{ listing.vehicle.engine }}</dd>{% endif %}
+          {% if listing.vehicle.transmission %}<dt>Transmission</dt><dd>{{ listing.vehicle.transmission }}</dd>{% endif %}
+          {% if listing.vehicle.drivetrain %}<dt>Drivetrain</dt><dd>{{ listing.vehicle.drivetrain }}</dd>{% endif %}
+          {% if listing.vehicle.fuel_type %}<dt>Fuel</dt><dd>{{ listing.vehicle.fuel_type }}</dd>{% endif %}
+          {% if listing.vehicle.mpg is not none %}<dt>MPG</dt><dd>{{ listing.vehicle.mpg }}</dd>{% endif %}
+          {% if listing.vehicle.vin %}<dt>VIN</dt><dd>{{ listing.vehicle.vin }}</dd>{% endif %}
+          {% if listing.vehicle.stock_number %}<dt>Stock number</dt><dd>{{ listing.vehicle.stock_number }}</dd>{% endif %}
+          {% if listing.public_location %}<dt>Location</dt><dd>{{ listing.public_location }}</dd>{% endif %}
+          <dt>Seller</dt>
+          <dd>{{ listing.seller.username }}</dd>
+        </dl>
+      </section>
+    </div>
+
+    {% if listing.vehicle.features %}
+      <section class="autogrid360-features" aria-labelledby="listing-features-heading">
+        <h2 id="listing-features-heading">Features / Options</h2>
+        <ul>
+          {% for feature in listing.vehicle.features %}
+            <li>{{ feature.label }}</li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% endif %}
+
+    {% if is_admin %}
+      <section class="autogrid360-admin-listing-controls" aria-labelledby="listing-administration-heading">
+        <h2 id="listing-administration-heading">Administration</h2>
+        <p><strong>Seller:</strong> {{ listing.seller.username }}</p>
+
+        <form method="post" action="{{ url_for('autogrid360_listings.admin_status', listing_id=listing.id) }}" novalidate>
+          {{ admin_status_form.hidden_tag() }}
+          <fieldset>
+            <legend>Change Listing Status</legend>
+            <div class="form-group">
+              {{ admin_status_form.status.label }}
+              {{ admin_status_form.status(class_="form-control") }}
+              {% for error in admin_status_form.status.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+              <p class="form-help">Administrator override. Lifecycle timestamps and publication state are updated through the normal AutoGrid360 lifecycle service.</p>
+            </div>
+          </fieldset>
+          <div class="form-group">
+            {{ admin_status_form.submit() }}
+          </div>
+        </form>
+        <form method="post" action="{{ url_for('autogrid360_admin.assign_seller', listing_id=listing.id) }}" novalidate>
+          {{ assign_seller_form.hidden_tag() }}
+          <fieldset>
+            <legend>Assign Seller</legend>
+            <div class="form-group">
+              {{ assign_seller_form.seller_username.label }}
+              {{ assign_seller_form.seller_username(class_="form-control") }}
+              {% for error in assign_seller_form.seller_username.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+            </div>
+          </fieldset>
+          <div class="form-group">
+            {{ assign_seller_form.submit() }}
+          </div>
+        </form>
+      </section>
+    {% endif %}
+  </article>
+  <script src="{{ url_for('autogrid360.static', filename='gallery.js') }}" defer></script>
+{% endblock %}

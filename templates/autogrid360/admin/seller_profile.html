@@ -1,0 +1,32 @@
+{% extends "autogrid360/admin/base.html" %}
+
+
+{% block autogrid360_admin_content %}
+  <section class="content-page autogrid360-form-page">
+    <h1>Seller: {{ seller.username }}</h1>
+    <p>
+      <a href="{{ url_for('autogrid360_admin.inventory', seller=seller.username) }}">View seller inventory</a>
+      {% if seller_profile %}· <a href="{{ url_for('autogrid360.seller_detail', username=seller.username) }}">Public seller page</a>{% endif %}
+    </p>
+    <p>Manage AutoGrid360-specific seller presentation without duplicating account contact or location details.</p>
+
+    <form method="post" novalidate>
+      {{ form.hidden_tag() }}
+
+      <fieldset>
+        <legend>Seller Presentation</legend>
+        {% for field in [form.display_name, form.company_name] %}
+          <div class="form-group">
+            {{ field.label }}
+            {{ field(class_="form-control") }}
+            {% for error in field.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+          </div>
+        {% endfor %}
+      </fieldset>
+
+      <div class="form-group">
+        {{ form.submit() }}
+      </div>
+    </form>
+  </section>
+{% endblock %}

@@ -1,0 +1,53 @@
+<div class="form-group">
+  {{ form.year.label }}
+  {{ form.year(class_="form-control") }}
+  {% for error in form.year.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+</div>
+
+<div class="form-group autogrid360-other-value" data-autogrid360-other-group="year_other">
+  {{ form.year_other.label }}
+  {{ form.year_other(class_="form-control", inputmode="numeric", pattern="[0-9]{4}", placeholder="YYYY", maxlength="4") }}
+  <p class="form-help">Use this only when Year is set to Older / Other.</p>
+  {% for error in form.year_other.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+</div>
+
+{% for field in [
+  form.make, form.model, form.model_other, form.trim, form.vehicle_type
+] %}
+  <div class="form-group">
+    {{ field.label }}
+    {{ field(class_="form-control") }}
+    {% for error in field.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+  </div>
+{% endfor %}
+
+<div class="form-group">
+  {{ form.doors.label }}
+  {{ form.doors(class_="form-control") }}
+  {% for error in form.doors.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+</div>
+
+<div class="form-group autogrid360-other-value" data-autogrid360-other-group="doors_other">
+  {{ form.doors_other.label }}
+  {{ form.doors_other(class_="form-control", min="1", max="10") }}
+  <p class="form-help">Use this only when Doors is set to Other.</p>
+  {% for error in form.doors_other.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+</div>
+
+{% for field in [
+  form.exterior_color, form.mileage, form.condition, form.engine,
+  form.transmission, form.drivetrain, form.mpg, form.fuel_type,
+  form.vin, form.stock_number
+] %}
+  <div class="form-group">
+    {{ field.label }}
+    {{ field(class_="form-control") }}
+    {% for error in field.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+  </div>
+{% endfor %}
+
+<div class="form-group autogrid360-feature-choices">
+  {{ form.features.label }}
+  {{ form.features() }}
+  {% for error in form.features.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+</div>

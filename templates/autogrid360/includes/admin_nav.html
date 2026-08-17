@@ -1,0 +1,11 @@
+<h3>{{ autogrid360_navigation_label }} Admin</h3>
+<ul>
+  <li><a href="{{ url_for('autogrid360_admin.index') }}"{% if request.endpoint == 'autogrid360_admin.index' %} aria-current="page"{% endif %}>Dashboard</a></li>
+  <li><a href="{{ url_for('autogrid360_admin.inventory') }}"{% if request.endpoint == 'autogrid360_admin.inventory' %} aria-current="page"{% endif %}>Inventory</a></li>
+  <li><a href="{{ url_for('autogrid360_admin.pending') }}"{% if request.endpoint == 'autogrid360_admin.pending' %} aria-current="page"{% endif %}>Pending Review</a></li>
+  <li><a href="{{ url_for('autogrid360_admin.sellers') }}"{% if request.endpoint == 'autogrid360_admin.sellers' %} aria-current="page"{% endif %}>Sellers</a></li>
+  <li><a href="{{ url_for('autogrid360_admin.create_listing') }}"{% if request.endpoint == 'autogrid360_admin.create_listing' %} aria-current="page"{% endif %}>Create Seller Listing</a></li>
+  <li><a href="{{ url_for('autogrid360_reference.index') }}"{% if request.blueprint == 'autogrid360_reference' %} aria-current="page"{% endif %}>Reference Data</a></li>
+  <li><a href="{{ url_for('autogrid360_admin.backup_restore') }}"{% if request.endpoint in ['autogrid360_admin.backup_restore', 'autogrid360_admin.inventory_export_all', 'autogrid360_admin.inventory_restore'] %} aria-current="page"{% endif %}>Backup / Restore</a></li>
+  <li><a href="{{ url_for('autogrid360_settings.settings') }}"{% if request.endpoint == 'autogrid360_settings.settings' %} aria-current="page"{% endif %}>Settings</a></li>
+</ul>

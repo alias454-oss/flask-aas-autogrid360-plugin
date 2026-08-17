@@ -1,0 +1,42 @@
+{% set sidebar_extra_template = "autogrid360/includes/public_nav.html" %}
+{% extends "plugins/base.html" %}
+
+{% block plugin_styles %}
+  <link rel="stylesheet" href="{{ url_for('autogrid360.static', filename='style.css') }}">
+{% endblock %}
+
+{% block content %}
+  {% include "autogrid360/includes/public_nav_fallback.html" %}
+  <section class="content-page autogrid360-form-page">
+    <h1>Seller Profile</h1>
+    <p>
+      Choose how you want to be identified in AutoGrid360. Contact and location details
+      are managed with your account information and are not duplicated here.
+    </p>
+
+    {% if seller_profile %}
+      <p>
+        <a href="{{ url_for('autogrid360.seller_detail', username=current_user.username) }}">View public seller profile</a>
+      </p>
+    {% endif %}
+
+    <form method="post" novalidate>
+      {{ form.hidden_tag() }}
+
+      <fieldset>
+        <legend>Seller Presentation</legend>
+        {% for field in [form.display_name, form.company_name] %}
+          <div class="form-group">
+            {{ field.label }}
+            {{ field(class_="form-control") }}
+            {% for error in field.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+          </div>
+        {% endfor %}
+      </fieldset>
+
+      <div class="form-group">
+        {{ form.submit() }}
+      </div>
+    </form>
+  </section>
+{% endblock %}

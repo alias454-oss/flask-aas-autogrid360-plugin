@@ -1,0 +1,68 @@
+<fieldset class="autogrid360-image-management">
+  <legend id="image-management-heading">Listing Images</legend>
+  <p class="form-help">Upload, choose the primary image, change display order, or remove listing images.</p>
+
+  {% if listing.images %}
+    <ol class="autogrid360-image-grid autogrid360-management-image-grid">
+      {% for image in listing.images %}
+        <li>
+          <img
+            src="{{ url_for('autogrid360_images.file', listing_id=listing.id, image_id=image.id, variant='thumb') }}"
+            alt="Image {{ loop.index }} for {{ listing.title }}"
+          >
+          {% if image.is_primary %}<small class="autogrid360-primary-label"><strong>Primary</strong></small>{% endif %}
+
+          <div class="autogrid360-image-actions">
+            {% if not image.is_primary %}
+              <form method="post" action="{{ url_for('autogrid360_images.primary', listing_id=listing.id, image_id=image.id) }}">
+                {{ image_action_form.hidden_tag() }}
+                <button class="button" type="submit">Set primary</button>
+              </form>
+            {% endif %}
+
+            {% if not loop.first %}
+              <form method="post" action="{{ url_for('autogrid360_images.move', listing_id=listing.id, image_id=image.id) }}">
+                {{ image_move_form.csrf_token }}
+                <input type="hidden" name="direction" value="up">
+                <button class="button autogrid360-image-order-button" type="submit" aria-label="Move image {{ loop.index }} earlier" title="Move earlier">&larr;</button>
+              </form>
+            {% endif %}
+
+            {% if not loop.last %}
+              <form method="post" action="{{ url_for('autogrid360_images.move', listing_id=listing.id, image_id=image.id) }}">
+                {{ image_move_form.csrf_token }}
+                <input type="hidden" name="direction" value="down">
+                <button class="button autogrid360-image-order-button" type="submit" aria-label="Move image {{ loop.index }} later" title="Move later">&rarr;</button>
+              </form>
+            {% endif %}
+
+            <form method="post" action="{{ url_for('autogrid360_images.delete', listing_id=listing.id, image_id=image.id) }}">
+              {{ image_action_form.hidden_tag() }}
+              <button class="button" type="submit">Delete</button>
+            </form>
+          </div>
+        </li>
+      {% endfor %}
+    </ol>
+  {% else %}
+    <p>No listing images have been uploaded.</p>
+  {% endif %}
+
+  <form
+    class="autogrid360-image-upload"
+    method="post"
+    enctype="multipart/form-data"
+    action="{{ url_for('autogrid360_images.upload', listing_id=listing.id) }}"
+    novalidate
+  >
+    {{ image_upload_form.hidden_tag() }}
+    <div class="form-group">
+      {{ image_upload_form.images.label }}
+      {{ image_upload_form.images(multiple=true, accept="image/jpeg,image/png,image/webp") }}
+      {% for error in image_upload_form.images.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+    </div>
+    <div class="form-group">
+      {{ image_upload_form.submit() }}
+    </div>
+  </form>
+</fieldset>

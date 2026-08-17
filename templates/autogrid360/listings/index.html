@@ -1,0 +1,66 @@
+{% set sidebar_extra_template = "autogrid360/includes/public_nav.html" %}
+{% extends "plugins/base.html" %}
+
+{% block plugin_styles %}
+  <link rel="stylesheet" href="{{ url_for('autogrid360.static', filename='style.css') }}">
+{% endblock %}
+
+{% block content %}
+  {% include "autogrid360/includes/public_nav_fallback.html" %}
+  <section id="my-listings" class="content-page autogrid360-listings-page">
+    <h1>My Listings</h1>
+    {% if listings %}
+      <div class="autogrid360-listing-list">
+        {% for listing in listings %}
+          {% set primary_image = listing.images | selectattr('is_primary') | first %}
+          <article class="panel autogrid360-listing-card">
+            <div class="autogrid360-listing-card__media">
+              {% if primary_image %}
+                <div class="autogrid360-status-ribbon-frame">
+                  <a href="{{ url_for('autogrid360_listings.detail', listing_id=listing.id) }}">
+                    <img
+                      class="autogrid360-listing-thumb"
+                      src="{{ url_for('autogrid360_images.file', listing_id=listing.id, image_id=primary_image.id, variant='thumb') }}"
+                      alt="Primary image for {{ listing.title }}"
+                    >
+                  </a>
+                  {% include "autogrid360/includes/listing_status_ribbon.html" %}
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="autogrid360-listing-card__body">
+              <h2 class="autogrid360-listing-card__title">
+                <a href="{{ url_for('autogrid360_listings.detail', listing_id=listing.id) }}">{{ listing.title }}</a>
+              </h2>
+              <p class="autogrid360-listing-card__meta"><strong>Status:</strong> {{ listing.status_label }}</p>
+              <p class="autogrid360-listing-card__meta">
+                {% if listing.vehicle.year %}{{ listing.vehicle.year }} {% endif %}
+                {{ listing.vehicle.make }} {{ listing.vehicle.model }}
+                {% if listing.vehicle.trim %} {{ listing.vehicle.trim }}{% endif %}
+              </p>
+              {% if listing.price is not none %}
+                <p class="autogrid360-listing-card__price"><strong>Price:</strong> {{ listing.price|autogrid360_currency }}</p>
+              {% endif %}
+              {% if listing.public_location %}
+                <p class="autogrid360-listing-card__meta"><strong>Location:</strong> {{ listing.public_location }}</p>
+              {% endif %}
+              <p class="autogrid360-listing-card__actions">
+                <a href="{{ url_for('autogrid360_listings.detail', listing_id=listing.id) }}">Manage listing</a>
+                ·
+                <a href="{{ url_for('autogrid360_listings.edit', listing_id=listing.id) }}">Edit</a>
+              </p>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p>You do not have any listings yet.</p>
+    {% endif %}
+
+    <section class="autogrid360-inventory-tools" aria-labelledby="inventory-tools-heading">
+      <h2 id="inventory-tools-heading">Inventory Tools</h2>
+      <p><a href="{{ url_for('autogrid360_account.inventory_transfer') }}">Backup / Restore</a></p>
+    </section>
+  </section>
+{% endblock %}
