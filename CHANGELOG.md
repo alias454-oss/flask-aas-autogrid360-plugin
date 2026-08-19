@@ -2,6 +2,18 @@
 
 This changelog records implementation changes to the Flask-AAS AutoGrid360 application plugin.
 
+
+## 2026-08-19 — First durable migration checkpoint
+
+- Froze the first durable AutoGrid360 migration baseline as `98b97bf7aa67_initial_autogrid360_schema.py`, replacing the earlier ignored/provisional development chain through `6e71dd7952ab`.
+- The durable baseline represents the complete accepted current AutoGrid360 schema and owns only the `plugin_autogrid360_*` namespace plus its independent `plugin_autogrid360_alembic_version` state.
+- Re-identified the existing development database at the new durable head after confirming the schema was already equivalent; normal plugin startup then returned `ACTIVE` with `current=98b97bf7aa67` and `head=98b97bf7aa67`.
+- Completed the full post-PostgreSQL-facet-fix AutoGrid360 regression at **347 passed, 15 warnings, 256 subtests passed in 55.02s**. The enclosing Flask-AAS suite is green at **428 passed, 13 warnings, 22 subtests passed in 29.43s**.
+- AutoGrid360 migration history now follows rolled-up release checkpoints: released/supported checkpoints remain durable upgrade origins, while development-only revisions after the latest released checkpoint may be consolidated before the next release so permanent history records the net schema change rather than every intermediate development edit.
+- For future development-only consolidation, use the simple release-engineering workflow: back up the development database and migration tree, roll up the unpublished revisions, re-identify/stamp the known-equivalent development database at the new head, run the plugin regression suite, and remove the backups only after validation succeeds.
+- The remaining release path is now packaged-migration PostgreSQL validation, repository/release hygiene, immutable host/plugin commit references for the official distribution, composed-image/bootstrap validation, and hosted/Railway validation.
+
+
 ## 2026-08-17 — Public-Alpha preflight and PostgreSQL validation
 
 - Completed the final Flask-AAS/AutoGrid360 preflight hardening pass. The latest user-confirmed automated baseline before the final PostgreSQL facet adjustment is **347 AutoGrid360 tests plus 256 subtests** and **407 Flask-AAS tests plus 22 subtests**.
