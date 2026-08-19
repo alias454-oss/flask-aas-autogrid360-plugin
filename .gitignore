@@ -46,9 +46,6 @@ Thumbs.db
 !.env.example
 !.env_example
 
-# Temporary local LLM patch file
-/llm-apply.patch
-
 # Migration history is disposable during heavy development.
 # Freeze and version it after the initial listing schema stabilizes.
 # /migrations/
