@@ -31,8 +31,13 @@ python -m pytest
 - Preserve caller-owned transaction behavior where services participate in larger operations.
 - Avoid unnecessary JavaScript, dependencies, abstractions, and proprietary service requirements.
 - Keep operator data refresh, maintenance, and migrations deterministic and testable.
-- Do not rewrite published migration history. After the initial public migration is frozen, schema
-  changes must move forward with new revisions.
+- Treat released/supported migration checkpoints as durable upgrade origins. Development-only
+  revisions created after the latest released checkpoint may be rolled up before the next release so
+  permanent history records the net schema change rather than every intermediate edit.
+- Before consolidating unpublished migration history, back up the development database and migration
+  tree, regenerate the rolled-up revision, re-identify/stamp the known-equivalent development database
+  at the new head, run the full AutoGrid360 regression suite, and remove backups only after validation
+  succeeds.
 
 ## Documentation
 

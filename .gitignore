@@ -51,4 +51,4 @@ Thumbs.db
 
 # Migration history is disposable during heavy development.
 # Freeze and version it after the initial listing schema stabilizes.
-/migrations/
+# /migrations/

@@ -20,10 +20,16 @@ Flask-AAS provides authentication, accounts, MFA, sessions, host roles, mail, CA
 
 ## Validation
 
-Latest user-confirmed automated baseline:
+Latest user-confirmed automated baseline after the PostgreSQL-specific Advanced Search correction:
 
 ```text
 AutoGrid360: 347 passed, 15 warnings, 256 subtests passed
+```
+
+The current durable AutoGrid360 migration checkpoint is:
+
+```text
+98b97bf7aa67
 ```
 
 AutoGrid360 has also been exercised with a clean Docker/PostgreSQL deployment from an empty database through:
@@ -58,7 +64,13 @@ From the Flask-AAS administrator interface:
 5. Load the packaged automotive reference dataset.
 6. Load postal data if postal lookup and radius search are required.
 
-Published releases must include the AutoGrid360 migration history and must not depend on locally generated or ignored migration files.
+The repository includes the durable AutoGrid360 migration history. Normal installations should use
+the shipped migration checkpoint rather than generating replacement migration files locally.
+
+Released/supported migration checkpoints are durable upgrade origins. Development-only revisions
+created after the latest released checkpoint may be consolidated before the next release so the
+permanent history represents the net schema change between supported checkpoints rather than every
+intermediate model edit.
 
 ## Configuration and storage
 
@@ -129,6 +141,12 @@ python -m pytest
 ```
 
 Changes involving SQL behavior, schema lifecycle, or deployment should also be exercised against PostgreSQL. SQLite can permit SQL behavior that PostgreSQL rejects.
+
+When consolidating unpublished migration revisions, back up the current development database and
+migration tree, generate the rolled-up revision, re-identify/stamp the known-equivalent development
+database at the new head, run the complete plugin regression suite, and remove the backups only after
+validation succeeds. Do not rewrite a released checkpoint that real deployments may need as an
+upgrade origin.
 
 ## Project boundaries
 
