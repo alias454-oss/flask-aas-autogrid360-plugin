@@ -111,7 +111,11 @@
 
     {% if not is_sold %}
       <p id="seller-contact" class="autogrid360-contact-action">
-        <a href="{{ url_for('autogrid360.contact_seller', listing_id=listing.id) }}">Contact Seller</a>
+        {% if seller_contact_available %}
+          <a href="{{ url_for('autogrid360.contact_seller', listing_id=listing.id) }}">Contact Seller</a>
+        {% else %}
+          Seller contact is currently unavailable.
+        {% endif %}
       </p>
     {% endif %}
   </article>

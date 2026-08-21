@@ -206,6 +206,7 @@ class AutoGrid360ListingRouteTestCase(unittest.TestCase):
             users_per_page=20,
             users_stored_path=str(Path(self.temp_dir.name) / "users"),
             enable_logging=False,
+            use_smtp=True,
             use_user_location=True,
             use_fancy_urls=False,
         )
@@ -259,6 +260,13 @@ class AutoGrid360ListingRouteTestCase(unittest.TestCase):
 
     def _set_fancy_urls(self, enabled: bool):
         self.env_settings.use_fancy_urls = enabled
+        db.session.commit()
+        EnvSettings._cached_instance = None
+        g.pop("_env_settings", None)
+
+
+    def _set_outbound_email_enabled(self, enabled: bool):
+        self.env_settings.use_smtp = enabled
         db.session.commit()
         EnvSettings._cached_instance = None
         g.pop("_env_settings", None)

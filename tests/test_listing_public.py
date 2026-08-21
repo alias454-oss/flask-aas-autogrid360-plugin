@@ -1403,6 +1403,56 @@ class AutoGrid360PublicListingRouteTests(AutoGrid360ListingRouteTestCase):
         self.assertNotIn(self.seller.email, body)
 
 
+    def test_public_detail_hides_contact_link_when_outbound_email_unavailable(self):
+        listing = self._create_listing()
+        listing.status = STATUS_ACTIVE
+        self._set_outbound_email_enabled(False)
+
+        response = self.app.test_client().get(self.public_listing_path(listing))
+
+        self.assertEqual(response.status_code, 200)
+        body = response.get_data(as_text=True)
+        self.assertIn("Seller contact is currently unavailable.", body)
+        self.assertNotIn(
+            f"/autogrid360/listings/{listing.id}/contact",
+            body,
+        )
+
+
+    def test_contact_seller_route_refuses_when_outbound_email_unavailable(self):
+        listing = self._create_listing()
+        listing.status = STATUS_ACTIVE
+        self._set_outbound_email_enabled(False)
+        client = self.app.test_client()
+
+        with patch(
+            "app.plugins.autogrid360.routes.public.send_email"
+        ) as send_email:
+            get_response = client.get(
+                f"/autogrid360/listings/{listing.id}/contact"
+            )
+            post_response = client.post(
+                f"/autogrid360/listings/{listing.id}/contact",
+                data=self._inquiry_form_data(),
+            )
+
+        self.assertEqual(get_response.status_code, 302)
+        self.assertEqual(post_response.status_code, 302)
+        self.assertEqual(
+            get_response.headers["Location"],
+            self.public_listing_path(listing),
+        )
+        self.assertEqual(
+            post_response.headers["Location"],
+            self.public_listing_path(listing),
+        )
+        send_email.assert_not_called()
+        self.assertIn(
+            ("danger", "Seller contact is currently unavailable."),
+            self._flash_messages(client),
+        )
+
+
     def test_contact_seller_hides_non_active_listing_states(self):
         for status in (STATUS_DRAFT, STATUS_PENDING):
             listing = self._create_listing()
@@ -1427,7 +1477,11 @@ class AutoGrid360PublicListingRouteTests(AutoGrid360ListingRouteTestCase):
         listing.status = STATUS_ACTIVE
         db.session.commit()
         client = self.app.test_client()
-        env = SimpleNamespace(spam_check_enabled=False, spam_check_provider="local")
+        env = SimpleNamespace(
+            use_smtp=True,
+            spam_check_enabled=False,
+            spam_check_provider="local",
+        )
 
         with patch(
             "app.plugins.autogrid360.routes.public.get_cached_env_settings",
@@ -1475,7 +1529,11 @@ class AutoGrid360PublicListingRouteTests(AutoGrid360ListingRouteTestCase):
         self.other_user.email = "other-seller@example.com"
         db.session.commit()
         self._login(client, self.other_user)
-        env = SimpleNamespace(spam_check_enabled=False, spam_check_provider="local")
+        env = SimpleNamespace(
+            use_smtp=True,
+            spam_check_enabled=False,
+            spam_check_provider="local",
+        )
 
         with patch(
             "app.plugins.autogrid360.routes.public.get_cached_env_settings",
@@ -1534,7 +1592,11 @@ class AutoGrid360PublicListingRouteTests(AutoGrid360ListingRouteTestCase):
         listing.status = STATUS_ACTIVE
         db.session.commit()
         client = self.app.test_client()
-        env = SimpleNamespace(spam_check_enabled=True, spam_check_provider="local")
+        env = SimpleNamespace(
+            use_smtp=True,
+            spam_check_enabled=True,
+            spam_check_provider="local",
+        )
 
         with patch(
             "app.plugins.autogrid360.routes.public.get_cached_env_settings",
@@ -1566,7 +1628,11 @@ class AutoGrid360PublicListingRouteTests(AutoGrid360ListingRouteTestCase):
         listing.status = STATUS_ACTIVE
         db.session.commit()
         client = self.app.test_client()
-        env = SimpleNamespace(spam_check_enabled=False, spam_check_provider="local")
+        env = SimpleNamespace(
+            use_smtp=True,
+            spam_check_enabled=False,
+            spam_check_provider="local",
+        )
 
         with patch(
             "app.plugins.autogrid360.routes.public.get_cached_env_settings",
@@ -1618,7 +1684,11 @@ class AutoGrid360PublicListingRouteTests(AutoGrid360ListingRouteTestCase):
         listing.status = STATUS_ACTIVE
         db.session.commit()
         client = self.app.test_client()
-        env = SimpleNamespace(spam_check_enabled=False, spam_check_provider="local")
+        env = SimpleNamespace(
+            use_smtp=True,
+            spam_check_enabled=False,
+            spam_check_provider="local",
+        )
 
         with patch(
             "app.plugins.autogrid360.routes.public.get_cached_env_settings",

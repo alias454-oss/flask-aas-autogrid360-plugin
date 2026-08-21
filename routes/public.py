@@ -23,7 +23,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.core.avatar import profile_image_data_uri
 from app.core.cache import get_cached_env_settings
 from app.core.extensions import db, limiter
-from app.core.mailer import send_email
+from app.core.mailer import get_mail_configuration_state, send_email
 from app.core.security import get_client_ip, normalize_email, redact_email
 from app.core.spam import check_spam
 from app.core.trackers import audit_activity_enabled, log_action_isolated
@@ -808,6 +808,17 @@ def seller_detail(username):
     )
 
 
+def _seller_inquiry_available() -> bool:
+    """Return whether the host can currently deliver seller inquiries."""
+
+    try:
+        state = get_mail_configuration_state(get_cached_env_settings())
+    except Exception:
+        logger.exception("Unable to determine AutoGrid360 seller inquiry availability")
+        return False
+    return state.enabled and state.available
+
+
 def _render_public_listing(listing: Listing):
     """Render one policy-visible listing with canonical metadata."""
 
@@ -838,6 +849,7 @@ def _render_public_listing(listing: Listing):
         seller_label=_seller_label(listing.seller, seller_profile),
         is_sale_pending=listing.status == STATUS_SALE_PENDING,
         is_sold=listing.status == STATUS_SOLD,
+        seller_contact_available=_seller_inquiry_available(),
         can_manage_current_listing=can_manage_listing(listing),
         listing_url=canonical_url,
         share_mailto=_share_mailto(listing, canonical_url),
@@ -911,6 +923,10 @@ def contact_seller(listing_id):
     ).first_or_404()
     if not listing_is_publicly_visible(listing):
         abort(404)
+    if not _seller_inquiry_available():
+        flash("Seller contact is currently unavailable.", "danger")
+        return redirect(listing_url(listing))
+
     form = ListingInquiryForm()
 
     if current_user.is_authenticated:
