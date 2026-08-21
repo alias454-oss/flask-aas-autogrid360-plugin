@@ -32,6 +32,7 @@ from app.plugins.autogrid360.services.auth import can_manage_listing
 from app.plugins.autogrid360.forms.inquiries import ListingInquiryForm
 from app.plugins.autogrid360.services.formatting import format_currency
 from app.plugins.autogrid360.services.settings import (
+    currency_policy,
     distance_policy,
     listing_is_publicly_visible,
     listing_policy,
@@ -106,6 +107,13 @@ def _autogrid360_currency(value):
     """Expose the configured AutoGrid360 currency formatter to plugin templates."""
 
     return format_currency(value)
+
+
+@public_bp.app_template_global("autogrid360_currency_policy")
+def _autogrid360_currency_policy():
+    """Expose current currency presentation settings to plugin templates."""
+
+    return currency_policy()
 
 
 @public_bp.app_template_global("autogrid360_listing_url")

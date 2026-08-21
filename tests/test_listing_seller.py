@@ -114,6 +114,12 @@ class AutoGrid360SellerListingRouteTests(AutoGrid360ListingRouteTestCase):
             body,
             r'<input(?=[^>]*\bid="price")(?=[^>]*\btype="text")[^>]*>',
         )
+        self.assertIn('data-currency-preview="price-preview"', body)
+        self.assertIn('id="price-preview"', body)
+        self.assertIn('data-currency-symbol="$"', body)
+        self.assertIn('data-currency-decimal-separator="."', body)
+        self.assertIn('data-currency-thousands-separator=","', body)
+        self.assertIn('/autogrid360/static/currency.js', body)
 
 
     def test_create_accepts_human_formatted_price(self):
@@ -142,6 +148,13 @@ class AutoGrid360SellerListingRouteTests(AutoGrid360ListingRouteTestCase):
         db.session.commit()
         client = self.app.test_client()
         self._login(client, self.seller)
+
+        get_response = client.get("/autogrid360/listings/create")
+        get_body = get_response.get_data(as_text=True)
+        self.assertEqual(get_response.status_code, 200)
+        self.assertIn('data-currency-symbol="€"', get_body)
+        self.assertIn('data-currency-decimal-separator=","', get_body)
+        self.assertIn('data-currency-thousands-separator="."', get_body)
 
         response = client.post(
             "/autogrid360/listings/create",

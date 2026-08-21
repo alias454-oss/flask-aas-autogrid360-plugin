@@ -7,11 +7,12 @@
 
 {% block content %}
   {% include "autogrid360/includes/public_nav_fallback.html" %}
+  {% set currency = autogrid360_currency_policy() %}
   <section class="content-page autogrid360-form-page">
     <h1>Create Listing</h1>
     <p>Create the vehicle and save the listing as a draft.</p>
 
-    <form id="listing-editor" method="post" novalidate data-autogrid360-location-form data-geo-lookup-url="{{ url_for('autogrid360.geo_lookup') }}">
+    <form id="listing-editor" method="post" novalidate data-autogrid360-location-form data-geo-lookup-url="{{ url_for('autogrid360.geo_lookup') }}" data-currency-symbol="{{ currency.symbol }}" data-currency-decimal-separator="{{ currency.decimal_separator }}" data-currency-thousands-separator="{{ currency.thousands_separator }}">
       {{ form.hidden_tag() }}
 
       <fieldset>
@@ -25,7 +26,8 @@
 
         <div class="form-group">
           {{ form.price.label }}
-          {{ form.price(class_="form-control") }}
+          {{ form.price(class_="form-control", data_currency_preview="price-preview", aria_describedby="price-preview") }}
+          <output id="price-preview" class="autogrid360-currency-preview" for="{{ form.price.id }}"></output>
           {% for error in form.price.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
         </div>
 
@@ -66,6 +68,7 @@
       </div>
     </form>
   </section>
+  <script src="{{ url_for('autogrid360.static', filename='currency.js') }}" defer></script>
   <script src="{{ url_for('autogrid360.static', filename='models.js') }}"></script>
   <script src="{{ url_for('autogrid360.static', filename='editor.js') }}"></script>
   <script src="{{ url_for('static', filename='js/location_fields.js') }}" defer></script>
