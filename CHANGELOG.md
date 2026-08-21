@@ -3,6 +3,17 @@
 This changelog records implementation changes to the Flask-AAS AutoGrid360 application plugin.
 
 
+## 2026-08-21 — Input and POST/redirect UX hardening checkpoint
+
+- Made public seller inquiry availability follow the authoritative Flask-AAS mail state. When usable outbound mail is unavailable, the public listing no longer presents a functional-looking contact form and direct inquiry GET/POST access fails closed instead of accepting a message that cannot be delivered. AutoGrid360 continues to reuse the host mail service rather than duplicating SMTP configuration.
+- Added shared configured-currency parsing for manually entered monetary values. Listing Price, Payment Calculator vehicle amount/down payment, and Advanced Search minimum/maximum price accept human-readable input such as `8,950`, `$8,950`, or the equivalent configured symbol/separator format. Malformed grouping and symbol placement are rejected with visible validation errors, while structured backup/restore and other machine-facing values remain strict canonical decimals.
+- Kept Payment Calculator APR numeric-only and bounded listing price to the existing `NUMERIC(12,2)` storage range. Advanced Search normalizes accepted human-readable price filters back to canonical decimal query values.
+- Added a small shared client-side currency preview for listing Price and Payment Calculator monetary fields. The preview listens to the `input` event, honors configured symbol/decimal/thousands separators, initializes from existing values, and never rewrites the real form field, so server-side normalization remains authoritative. Advanced Search intentionally keeps its compact min/max filter controls without previews.
+- Added generic progressive scroll restoration for ordinary AutoGrid360 POST/redirect/GET workflows. The browser records the current scroll position immediately before a POST, stores it per tab in `sessionStorage`, restores it once on the next AutoGrid360 page, clamps it to the destination page height, and expires stale state after five minutes. GET forms, alternate browsing targets, canceled submissions, and explicit `data-no-scroll-restore` opt-outs are excluded; no fetch, HTMX, or SPA navigation was introduced.
+- These changes are application/UI hardening only and introduce no AutoGrid360 schema or migration change.
+- Latest user-confirmed complete AutoGrid360 regression: **360 passed, 15 warnings, 276 subtests passed in 65.91s**.
+
+
 ## 2026-08-19 — First durable migration checkpoint
 
 - Froze the first durable AutoGrid360 migration baseline as `98b97bf7aa67_initial_autogrid360_schema.py`, replacing the earlier ignored/provisional development chain through `6e71dd7952ab`.

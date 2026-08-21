@@ -9,21 +9,21 @@ It focuses on publishing and managing vehicle inventory for individual sellers a
 * Seller-owned vehicle listings with Draft, Pending Review, Active, Sale Pending, Sold, Expired, and Removed states.
 * Configurable listing approval, re-review, expiration, retention, and public visibility rules.
 * Listing image upload, normalization, thumbnails, ordering, and primary-image management.
-* Public inventory browsing, Advanced Search, seller pages, postal-radius search, and inquiries.
+* Public inventory browsing, Advanced Search, seller pages, postal-radius search, and seller inquiries that fail closed when host mail is unavailable.
 * Administrator inventory, moderation, seller, reference-data, backup/restore, and settings tools.
 * Automotive reference data for makes, models, vehicle types, drivetrains, and features.
 * Versioned seller and full-site inventory backup/restore without exporting Flask-AAS authentication state.
-* Public listing metadata, canonical URLs, sitemap, RSS feeds, and a payment calculator.
+* Public listing metadata, canonical URLs, sitemap, RSS feeds, and a payment calculator with currency-aware monetary entry.
 * Scheduled or operator-driven listing lifecycle maintenance.
 
 Flask-AAS provides authentication, accounts, MFA, sessions, host roles, mail, CAPTCHA, audit infrastructure, and plugin lifecycle management.
 
 ## Validation
 
-Latest user-confirmed automated baseline after the PostgreSQL-specific Advanced Search correction:
+Latest user-confirmed automated baseline after the current input and POST/redirect UX hardening:
 
 ```text
-AutoGrid360: 347 passed, 15 warnings, 256 subtests passed
+AutoGrid360: 360 passed, 15 warnings, 276 subtests passed
 ```
 
 The current durable AutoGrid360 migration checkpoint is:
@@ -82,6 +82,8 @@ Marketplace policy is managed under **AutoGrid360 Admin → Settings**, includin
 * seller restore policy;
 * currency and distance display;
 * listing-image storage.
+
+The configured currency symbol, decimal separator, and thousands separator also govern human-entered monetary values. Listing price, Payment Calculator amount/down payment, and Advanced Search price ranges accept configured human-readable formatting while stored and machine-facing values remain canonical decimals. Listing and Payment Calculator monetary fields provide a read-only live formatted preview without rewriting the submitted input.
 
 Normalized listing images default to:
 
