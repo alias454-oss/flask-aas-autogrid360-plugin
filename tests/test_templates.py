@@ -135,6 +135,46 @@ class AutoGrid360TemplateContractTests(unittest.TestCase):
         )
 
 
+    def test_user_facing_pages_load_shared_scroll_restoration_script(self):
+        user_facing_pages = {
+            Path("account/profile.html"),
+            Path("account/transfer.html"),
+            Path("index.html"),
+            Path("listing.html"),
+            Path("listings/contact.html"),
+            Path("listings/create.html"),
+            Path("listings/edit.html"),
+            Path("listings/index.html"),
+            Path("listings/public.html"),
+            Path("listings/search.html"),
+            Path("sellers/public.html"),
+            Path("tools/payment.html"),
+        }
+
+        for relative in sorted(user_facing_pages):
+            source = (TEMPLATE_ROOT / relative).read_text(encoding="utf-8")
+            with self.subTest(template=str(relative)):
+                self.assertIn("filename='scroll.js'", source)
+
+        admin_base = (TEMPLATE_ROOT / "admin" / "base.html").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("filename='scroll.js'", admin_base)
+
+    def test_scroll_restoration_is_post_only_progressive_enhancement(self):
+        source = (PLUGIN_ROOT / "static" / "scroll.js").read_text(encoding="utf-8")
+
+        self.assertIn('method.toLowerCase() !== "post"', source)
+        self.assertIn("event.defaultPrevented", source)
+        self.assertIn('form.hasAttribute("data-no-scroll-restore")', source)
+        self.assertIn("window.scrollY", source)
+        self.assertIn("window.sessionStorage.setItem", source)
+        self.assertIn("window.sessionStorage.removeItem", source)
+        self.assertIn('window.addEventListener("pageshow", restorePosition)', source)
+        self.assertIn("window.scrollTo", source)
+        self.assertNotIn("fetch(", source)
+
+
     def test_data_entry_forms_follow_shared_fieldset_pattern(self):
         data_entry_templates = {
             Path("account/profile.html"),

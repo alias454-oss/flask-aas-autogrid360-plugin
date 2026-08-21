@@ -28,4 +28,5 @@
     {% set empty_message = 'No public listings match the selected filters.' if has_filters else 'No public listings are available right now.' %}
     {% include "autogrid360/includes/inventory_list.html" %}
   </section>
+  <script src="{{ url_for('autogrid360.static', filename='scroll.js') }}" defer></script>
 {% endblock %}
