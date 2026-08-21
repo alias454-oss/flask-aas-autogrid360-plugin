@@ -8,6 +8,7 @@
 
 {% block content %}
   {% include "autogrid360/includes/public_nav_fallback.html" %}
+  {% set currency = autogrid360_currency_policy() %}
   <section class="content-page autogrid360-payment-page">
     <h1>Vehicle Payment Calculator</h1>
 
@@ -22,7 +23,7 @@
       Estimates are informational only. Actual financing terms, taxes, fees, insurance, and lender calculations may differ.
     </p>
 
-    <form id="payment-calculator" method="post" novalidate>
+    <form id="payment-calculator" method="post" novalidate data-currency-symbol="{{ currency.symbol }}" data-currency-decimal-separator="{{ currency.decimal_separator }}" data-currency-thousands-separator="{{ currency.thousands_separator }}">
       {{ form.hidden_tag() }}
 
       <fieldset>
@@ -30,13 +31,15 @@
 
         <div class="form-group">
           {{ form.amount.label }}
-          {{ form.amount(class_="form-control", min=0, step='0.01') }}
+          {{ form.amount(class_="form-control", min=0, step='0.01', data_currency_preview="amount-preview", aria_describedby="amount-preview") }}
+          <output id="amount-preview" class="autogrid360-currency-preview" for="{{ form.amount.id }}"></output>
           {% for error in form.amount.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
         </div>
 
         <div class="form-group">
           {{ form.down_payment.label }}
-          {{ form.down_payment(class_="form-control", min=0, step='0.01') }}
+          {{ form.down_payment(class_="form-control", min=0, step='0.01', data_currency_preview="down-payment-preview", aria_describedby="down-payment-preview") }}
+          <output id="down-payment-preview" class="autogrid360-currency-preview" for="{{ form.down_payment.id }}"></output>
           {% for error in form.down_payment.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
         </div>
 
@@ -119,4 +122,5 @@
       {% endif %}
     {% endif %}
   </section>
+  <script src="{{ url_for('autogrid360.static', filename='currency.js') }}" defer></script>
 {% endblock %}

@@ -379,6 +379,48 @@ class AutoGrid360TemplateContractTests(unittest.TestCase):
         )
         self.assertIn("filename='search.js'", source)
 
+    def test_manual_currency_fields_use_shared_live_preview(self):
+        listing_templates = (
+            Path("listings/create.html"),
+            Path("listings/edit.html"),
+            Path("admin/listing_create.html"),
+        )
+
+        for relative in listing_templates:
+            source = (TEMPLATE_ROOT / relative).read_text(encoding="utf-8")
+            with self.subTest(template=str(relative)):
+                self.assertIn("autogrid360_currency_policy()", source)
+                self.assertIn('data_currency_preview="price-preview"', source)
+                self.assertIn('id="price-preview"', source)
+                self.assertIn("filename='currency.js'", source)
+
+        payment = (TEMPLATE_ROOT / "tools" / "payment.html").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("autogrid360_currency_policy()", payment)
+        self.assertIn('data_currency_preview="amount-preview"', payment)
+        self.assertIn('data_currency_preview="down-payment-preview"', payment)
+        self.assertIn('id="amount-preview"', payment)
+        self.assertIn('id="down-payment-preview"', payment)
+        annual_rate_line = next(
+            line for line in payment.splitlines() if "form.annual_interest_rate" in line
+        )
+        self.assertNotIn("data_currency_preview", annual_rate_line)
+        self.assertIn("filename='currency.js'", payment)
+
+        search = (TEMPLATE_ROOT / "listings" / "search.html").read_text(
+            encoding="utf-8"
+        )
+        self.assertNotIn("data-currency-preview", search)
+        self.assertNotIn("filename='currency.js'", search)
+
+        script = (PLUGIN_ROOT / "static" / "currency.js").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('addEventListener("input", updatePreview)', script)
+        self.assertIn('querySelectorAll("[data-currency-preview]")', script)
+        self.assertNotIn("input.value =", script)
+
     def test_location_js_rejects_cross_origin_lookup_endpoints(self):
         script = (PLUGIN_ROOT / "static" / "location.js").read_text(
             encoding="utf-8"

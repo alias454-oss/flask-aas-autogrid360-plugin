@@ -645,3 +645,19 @@
     max-width: calc(100vw - 1.5rem);
   }
 }
+
+.autogrid360-currency-preview {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+  margin-left: 0.5rem;
+  min-width: 7rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 36rem) {
+  .autogrid360-currency-preview {
+    display: block;
+    margin-left: 0;
+    margin-top: 0.35rem;
+  }
+}

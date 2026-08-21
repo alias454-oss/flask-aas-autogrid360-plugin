@@ -1346,6 +1346,15 @@ class AutoGrid360AdminListingRouteTests(AutoGrid360ListingRouteTestCase):
             get_body,
             r'<input(?=[^>]*\bid="annual_interest_rate")(?=[^>]*\btype="number")[^>]*>',
         )
+        self.assertIn('data-currency-preview="amount-preview"', get_body)
+        self.assertIn('data-currency-preview="down-payment-preview"', get_body)
+        self.assertIn('id="amount-preview"', get_body)
+        self.assertIn('id="down-payment-preview"', get_body)
+        self.assertNotRegex(
+            get_body,
+            r'<input(?=[^>]*\bid="annual_interest_rate")(?=[^>]*data-currency-preview)[^>]*>',
+        )
+        self.assertIn('/autogrid360/static/currency.js', get_body)
 
         post_response = client.post(
             "/autogrid360/tools/payment-calculator",
