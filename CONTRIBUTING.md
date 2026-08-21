@@ -42,5 +42,5 @@ python -m pytest
 ## Documentation
 
 Update documentation when a change alters public behavior, configuration, operator workflow, schema
-requirements, or the Alpha release target. Keep `README.md` concise; detailed capability tracking
-belongs in `OPENAUTO_parity.md`.
+requirements, or the release target. Keep `README.md` concise; detailed capability tracking belongs in
+`OPENAUTO_parity.md`.
