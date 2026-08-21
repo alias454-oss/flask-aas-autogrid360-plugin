@@ -29,6 +29,7 @@ from app.plugins.autogrid360.models import (
     VehicleModel,
     vehicle_features,
 )
+from app.plugins.autogrid360.services.currency import parse_currency_input
 from app.plugins.autogrid360.services.geo import (
     RADIUS_OPTIONS,
     distance_from_kilometers,
@@ -489,10 +490,10 @@ def _decimal(args, name: str) -> Decimal | None:
     if not raw_value:
         return None
     try:
-        value = Decimal(raw_value)
-    except InvalidOperation:
+        value = parse_currency_input(raw_value)
+    except (ArithmeticError, ValueError):
         return None
-    if not value.is_finite() or value < 0:
+    if value is None or not value.is_finite() or value < 0:
         return None
     return value
 

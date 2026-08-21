@@ -5,6 +5,7 @@ from flask_wtf import FlaskForm
 from wtforms import BooleanField, DecimalField, HiddenField, SelectField, SubmitField
 from wtforms.validators import InputRequired, NumberRange, Optional, ValidationError
 
+from app.plugins.autogrid360.forms.currency import CurrencyDecimalField
 from app.plugins.autogrid360.services.paycalc import PAYMENT_FREQUENCIES
 
 
@@ -12,16 +13,18 @@ class PaymentCalculatorForm(FlaskForm):
     """Collect deterministic vehicle-loan calculation inputs."""
 
     listing_id = HiddenField(validators=[Optional()])
-    amount = DecimalField(
+    amount = CurrencyDecimalField(
         "Vehicle Price / Amount",
         validators=[InputRequired(), NumberRange(min=0)],
         places=2,
+        invalid_message="Enter a valid vehicle price / amount.",
     )
-    down_payment = DecimalField(
+    down_payment = CurrencyDecimalField(
         "Down Payment",
         validators=[InputRequired(), NumberRange(min=0)],
         places=2,
         default=0,
+        invalid_message="Enter a valid down payment.",
     )
     annual_interest_rate = DecimalField(
         "Annual Interest Rate (%)",

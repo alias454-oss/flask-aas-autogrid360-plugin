@@ -1334,6 +1334,18 @@ class AutoGrid360AdminListingRouteTests(AutoGrid360ListingRouteTestCase):
         self.assertEqual(get_response.status_code, 200)
         self.assertIn(listing.title, get_body)
         self.assertIn('value="9250.00"', get_body)
+        self.assertRegex(
+            get_body,
+            r'<input(?=[^>]*\bid="amount")(?=[^>]*\btype="text")[^>]*>',
+        )
+        self.assertRegex(
+            get_body,
+            r'<input(?=[^>]*\bid="down_payment")(?=[^>]*\btype="text")[^>]*>',
+        )
+        self.assertRegex(
+            get_body,
+            r'<input(?=[^>]*\bid="annual_interest_rate")(?=[^>]*\btype="number")[^>]*>',
+        )
 
         post_response = client.post(
             "/autogrid360/tools/payment-calculator",
@@ -1355,6 +1367,43 @@ class AutoGrid360AdminListingRouteTests(AutoGrid360ListingRouteTestCase):
         self.assertIn("$347.99", post_body)
         self.assertIn("60", post_body)
         self.assertIn("Amortization Schedule", post_body)
+
+
+    def test_payment_calculator_accepts_human_formatted_currency_input(self):
+        response = self.app.test_client().post(
+            "/autogrid360/tools/payment-calculator",
+            data={
+                "amount": "$20,000.00",
+                "down_payment": "$ 2,000.00",
+                "annual_interest_rate": "6.000",
+                "loan_years": "5",
+                "frequency": "monthly",
+            },
+        )
+        body = response.get_data(as_text=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Amount financed", body)
+        self.assertIn("$18,000.00", body)
+        self.assertIn("Estimated Payment", body)
+
+
+    def test_payment_calculator_rejects_malformed_currency_input(self):
+        response = self.app.test_client().post(
+            "/autogrid360/tools/payment-calculator",
+            data={
+                "amount": "$20,00,0",
+                "down_payment": "$2,000.00",
+                "annual_interest_rate": "6.000",
+                "loan_years": "5",
+                "frequency": "monthly",
+            },
+        )
+        body = response.get_data(as_text=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Enter a valid vehicle price / amount.", body)
+        self.assertNotIn("Estimated Payment", body)
 
 
     def test_payment_calculator_rejects_down_payment_above_amount(self):
