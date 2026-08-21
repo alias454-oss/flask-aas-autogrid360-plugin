@@ -2,10 +2,10 @@
 """Listing forms for AutoGrid360."""
 
 from datetime import datetime, timezone
+from decimal import Decimal
 
 from flask_wtf import FlaskForm
 from wtforms import (
-    DecimalField,
     IntegerField,
     SelectField,
     SelectMultipleField,
@@ -16,7 +16,12 @@ from wtforms import (
 )
 from wtforms.validators import DataRequired, Length, NumberRange, Optional, ValidationError
 
-from app.plugins.autogrid360.services.reference import MODEL_OTHER_VALUE, normalize_reference_key
+from app.plugins.autogrid360.forms.currency import CurrencyDecimalField
+
+from app.plugins.autogrid360.services.reference import (
+    MODEL_OTHER_VALUE,
+    normalize_reference_key,
+)
 
 
 VIN_ALLOWED_CHARACTERS = frozenset("ABCDEFGHJKLMNPRSTUVWXYZ0123456789")
@@ -24,6 +29,7 @@ YEAR_OTHER_VALUE = "__other__"
 DOORS_OTHER_VALUE = "__other__"
 STANDARD_MODEL_YEAR_MIN = 2000
 AUTOMOTIVE_YEAR_MIN = 1886
+MAX_LISTING_PRICE = Decimal("9999999999.99")
 
 CONDITION_CHOICES = [
     ("", "Not specified"),
@@ -201,10 +207,18 @@ class ListingForm(FlaskForm):
         validators=[DataRequired(), Length(max=120)],
         filters=[normalize_text],
     )
-    price = DecimalField(
+    price = CurrencyDecimalField(
         "Price",
-        validators=[Optional(), NumberRange(min=0)],
+        validators=[
+            Optional(),
+            NumberRange(
+                min=0,
+                max=MAX_LISTING_PRICE,
+                message="Price must be between 0 and 9999999999.99.",
+            ),
+        ],
         places=2,
+        invalid_message="Enter a valid price.",
     )
     description = TextAreaField(
         "Description",

@@ -52,6 +52,7 @@ from app.plugins.autogrid360.services.reference import (
     seed_reference_data,
     vehicle_model_by_key,
 )
+from app.plugins.autogrid360.services.currency import parse_currency_input
 from app.plugins.autogrid360.services.formatting import format_currency
 from app.plugins.autogrid360.services.media import image_root, image_path
 from app.plugins.autogrid360.services.settings import (
@@ -392,6 +393,11 @@ class AutoGrid360ModelTests(unittest.TestCase):
         self.assertEqual(policy.decimal_separator, ".")
         self.assertEqual(policy.thousands_separator, ",")
         self.assertEqual(format_currency(Decimal("12345.6")), "$12,345.60")
+
+    def test_price_parser_accepts_common_human_us_currency_input(self):
+        for raw in ("8950", "8,950", "$8,950", "$ 8,950", "  8,950  "):
+            with self.subTest(raw=raw):
+                self.assertEqual(parse_currency_input(raw), Decimal("8950"))
 
     def test_distance_policy_defaults_to_auto_and_reads_persisted_override(self):
         self.assertEqual(distance_policy().default_unit, "auto")

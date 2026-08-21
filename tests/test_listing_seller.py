@@ -10,6 +10,7 @@ from app.plugins.autogrid360.models import (
     STATUS_DRAFT,
     STATUS_PENDING,
     STATUS_SOLD,
+    AutoGrid360Settings,
     Listing,
     ListingImage,
     SellerProfile,
@@ -109,6 +110,77 @@ class AutoGrid360SellerListingRouteTests(AutoGrid360ListingRouteTestCase):
         self.assertIn("City / Locality", body)
         self.assertNotIn("Street Address", body)
         self.assertIn("Save Draft", body)
+        self.assertRegex(
+            body,
+            r'<input(?=[^>]*\bid="price")(?=[^>]*\btype="text")[^>]*>',
+        )
+
+
+    def test_create_accepts_human_formatted_price(self):
+        client = self.app.test_client()
+        self._login(client, self.seller)
+
+        response = client.post(
+            "/autogrid360/listings/create",
+            data=self._listing_form_data(price="$ 32,565.00"),
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Listing.query.one().price, Decimal("32565.00"))
+
+
+    def test_create_uses_configured_currency_separators_for_price(self):
+        db.session.add(
+            AutoGrid360Settings(
+                id=1,
+                currency_code="EUR",
+                currency_symbol="€",
+                currency_decimal_separator=",",
+                currency_thousands_separator=".",
+            )
+        )
+        db.session.commit()
+        client = self.app.test_client()
+        self._login(client, self.seller)
+
+        response = client.post(
+            "/autogrid360/listings/create",
+            data=self._listing_form_data(price="€32.565,75"),
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Listing.query.one().price, Decimal("32565.75"))
+
+
+    def test_create_rejects_malformed_price_with_visible_field_error(self):
+        client = self.app.test_client()
+        self._login(client, self.seller)
+
+        response = client.post(
+            "/autogrid360/listings/create",
+            data=self._listing_form_data(price="$8,95,0"),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Enter a valid price.", response.get_data(as_text=True))
+        self.assertEqual(Listing.query.count(), 0)
+
+
+    def test_create_rejects_price_above_database_range(self):
+        client = self.app.test_client()
+        self._login(client, self.seller)
+
+        response = client.post(
+            "/autogrid360/listings/create",
+            data=self._listing_form_data(price="10000000000.00"),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(
+            "Price must be between 0 and 9999999999.99.",
+            response.get_data(as_text=True),
+        )
+        self.assertEqual(Listing.query.count(), 0)
 
 
     def test_create_form_uses_controlled_vehicle_editor_fields(self):

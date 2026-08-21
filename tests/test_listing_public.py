@@ -475,6 +475,58 @@ class AutoGrid360PublicListingRouteTests(AutoGrid360ListingRouteTestCase):
         self.assertNotIn(no_price.title, body)
 
 
+    def test_public_search_accepts_human_formatted_price_range(self):
+        low = self._create_active_inventory_listing(
+            title="Below formatted range",
+            year=2020,
+            make="Honda",
+            model="Fit",
+            price="5000.00",
+        )
+        middle = self._create_active_inventory_listing(
+            title="Inside formatted range",
+            year=2020,
+            make="Honda",
+            model="Civic",
+            price="10000.00",
+        )
+        high = self._create_active_inventory_listing(
+            title="Above formatted range",
+            year=2020,
+            make="Honda",
+            model="Pilot",
+            price="20000.00",
+        )
+
+        client = self.app.test_client()
+        response = client.get(
+            "/autogrid360/",
+            query_string={"min_price": "$10,000", "max_price": "$10,000"},
+        )
+        body = response.get_data(as_text=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(low.title, body)
+        self.assertIn(middle.title, body)
+        self.assertNotIn(high.title, body)
+
+        search_response = client.get(
+            "/autogrid360/listings/search",
+            query_string={"min_price": "$10,000", "max_price": "$10,000"},
+        )
+        search_body = search_response.get_data(as_text=True)
+
+        self.assertEqual(search_response.status_code, 200)
+        self.assertRegex(
+            search_body,
+            r'<input(?=[^>]*\bid="min_price")(?=[^>]*\btype="text")[^>]*>',
+        )
+        self.assertRegex(
+            search_body,
+            r'<input(?=[^>]*\bid="max_price")(?=[^>]*\btype="text")[^>]*>',
+        )
+
+
     def test_public_search_filters_vehicle_type_and_zone(self):
         match = self._create_active_inventory_listing(
             title="Illinois SUV",
