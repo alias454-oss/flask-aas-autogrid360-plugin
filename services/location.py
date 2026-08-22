@@ -9,7 +9,7 @@ from app.core.cache import get_cached_env_settings
 from sqlalchemy import select
 
 from app.core.extensions import db
-from app.core.locations import (
+from app.services.geo import (
     configure_location_choices as configure_host_location_choices,
     country_name as host_country_name,
     normalize_country_code,

@@ -7,7 +7,7 @@ from pathlib import Path
 import click
 
 from app.core.extensions import db
-from app.core.trackers import audit_activity_enabled, log_action, log_action_isolated
+from app.services.trackers import audit_activity_enabled, log_action, log_action_isolated
 from app.plugins.migrations import PluginMigrationError, PluginMigrationManager
 from app.plugins.autogrid360.services.auth import user_by_username
 from app.plugins.autogrid360.services.maintenance import run_scheduled_maintenance

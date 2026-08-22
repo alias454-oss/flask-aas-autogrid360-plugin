@@ -7,7 +7,7 @@ import logging
 
 from flask import url_for
 
-from app.core.mailer import MailStatus, get_mail_env_settings, send_email
+from app.services.mailer import MailStatus, get_mail_env_settings, send_email
 from app.plugins.autogrid360.models import Listing
 
 

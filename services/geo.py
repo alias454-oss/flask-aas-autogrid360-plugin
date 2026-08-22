@@ -12,7 +12,7 @@ import re
 from flask import current_app, has_app_context
 
 from app.core.extensions import db
-from app.core.locations import country_name
+from app.services.geo import country_name
 from app.plugins.autogrid360.models.postal import PostalLocation
 from app.plugins.autogrid360.models.settings import (
     DEFAULT_DISTANCE_UNIT,

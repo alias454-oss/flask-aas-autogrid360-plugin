@@ -3,7 +3,7 @@
 
 from flask_login import current_user
 
-from app.core.trackers import audit_activity_enabled, log_action, log_action_isolated
+from app.services.trackers import audit_activity_enabled, log_action, log_action_isolated
 
 
 def audit_listing_action(listing, *, action: str, extra_data: dict | None = None) -> None:

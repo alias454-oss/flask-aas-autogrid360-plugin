@@ -21,13 +21,13 @@ from sqlalchemy import case, func, update
 from sqlalchemy.orm import aliased, defaultload, lazyload
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.core.avatar import profile_image_data_uri
+from app.services.avatar import profile_image_data_uri
 from app.core.cache import get_cached_env_settings
 from app.core.extensions import db, limiter
-from app.core.mailer import get_mail_configuration_state, send_email
+from app.services.mailer import get_mail_configuration_state, send_email
 from app.core.security import get_client_ip, normalize_email, redact_email
-from app.core.spam import check_spam
-from app.core.trackers import audit_activity_enabled, log_action_isolated
+from app.services.spam import check_spam
+from app.services.trackers import audit_activity_enabled, log_action_isolated
 from app.models import User
 from app.plugins.autogrid360.services.auth import can_manage_listing
 from app.plugins.autogrid360.forms.inquiries import ListingInquiryForm

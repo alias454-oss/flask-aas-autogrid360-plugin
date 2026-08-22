@@ -24,6 +24,9 @@ python -m pytest
 
 - Keep AutoGrid360 concerns inside the plugin; reuse Flask-AAS for authentication, accounts, mail,
   CAPTCHA, audit, profile identity, and other host services.
+- Follow the Flask-AAS package boundary when consuming host code: foundational/runtime primitives live
+  under `app.core`, while operational host workflows live under `app.services`; do not duplicate host
+  behavior inside the plugin merely to avoid using the host service contract.
 - Prefer small, reviewable changes with focused regression coverage.
 - For performance work, measure query count/object loading first and fix demonstrated N+1, eager-loading,
   or full-materialization problems with the smallest route-local change; do not add caches, indexes,

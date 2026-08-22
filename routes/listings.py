@@ -7,7 +7,7 @@ from flask import Blueprint, abort, flash, redirect, render_template, url_for
 from flask_login import current_user
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.core.auth import login_required
+from app.core.decorators import login_required
 from app.core.extensions import db, limiter
 from app.core.security import get_client_ip
 from app.plugins.autogrid360.services.audit import audit_listing_action
