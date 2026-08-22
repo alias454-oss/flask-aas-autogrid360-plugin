@@ -11,7 +11,7 @@ from sqlalchemy import event
 from sqlalchemy.orm import Session
 
 from app.core.extensions import db
-from app.core.sessions import request_advances_session_activity
+from app.services.sessions import request_advances_session_activity
 from app.models import User
 from app.plugins.autogrid360.models import (
     STATUS_ACTIVE,

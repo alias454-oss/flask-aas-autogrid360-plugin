@@ -7,8 +7,8 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 import logging
 
-from app.core.mailer import send_email
-from app.core.trackers import audit_activity_enabled, log_action
+from app.services.mailer import send_email
+from app.services.trackers import audit_activity_enabled, log_action
 from app.plugins.autogrid360.services.lifecycle import (
     age_out_expired_listing,
     age_out_sold_listing,
