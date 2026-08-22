@@ -22,11 +22,10 @@ from app.plugins.autogrid360.services.auth import (
     user_by_username,
 )
 from app.plugins.autogrid360.forms.admin import AdminListingForm, AssignSellerForm
-from app.plugins.autogrid360.forms.listings import ApproveListingForm
+from app.plugins.autogrid360.forms.listings import ApproveListingForm, configure_location_form
 from app.plugins.autogrid360.forms.seller import SellerProfileForm
 from app.plugins.autogrid360.forms.transfer import AdminInventoryRestoreForm
 from app.plugins.autogrid360.services.geo import apply_listing_form_location
-from app.plugins.autogrid360.services.location import configure_location_form
 from app.plugins.autogrid360.services.transfer import (
     InventoryBundleError,
     cleanup_restore_files,

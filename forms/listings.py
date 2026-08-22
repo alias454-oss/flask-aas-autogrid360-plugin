@@ -17,6 +17,7 @@ from wtforms import (
 from wtforms.validators import DataRequired, Length, NumberRange, Optional, ValidationError
 
 from app.plugins.autogrid360.forms.currency import CurrencyDecimalField
+from app.services.geo import country_choices, zone_choices
 
 from app.plugins.autogrid360.services.reference import (
     MODEL_OTHER_VALUE,
@@ -30,6 +31,13 @@ DOORS_OTHER_VALUE = "__other__"
 STANDARD_MODEL_YEAR_MIN = 2000
 AUTOMOTIVE_YEAR_MIN = 1886
 MAX_LISTING_PRICE = Decimal("9999999999.99")
+
+
+def configure_location_form(form) -> None:
+    """Populate one listing form from Flask-AAS Country/Zone references."""
+
+    form.country_code.choices = country_choices()
+    form.zone_code.choices = zone_choices(form.country_code.data)
 
 CONDITION_CHOICES = [
     ("", "Not specified"),

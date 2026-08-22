@@ -24,6 +24,7 @@ from app.plugins.autogrid360.forms.listings import (
     DeleteListingForm,
     ExpireListingForm,
     ListingForm,
+    configure_location_form,
     MakeAvailableListingForm,
     MarkSalePendingListingForm,
     MarkSoldListingForm,
@@ -31,10 +32,7 @@ from app.plugins.autogrid360.forms.listings import (
     RemoveListingForm,
     SubmitListingForm,
 )
-from app.plugins.autogrid360.services.location import (
-    configure_location_form,
-    listing_profile_location,
-)
+from app.plugins.autogrid360.services.location import listing_profile_location
 from app.plugins.autogrid360.services.lifecycle import (
     ListingTransitionError,
     admin_set_listing_status,

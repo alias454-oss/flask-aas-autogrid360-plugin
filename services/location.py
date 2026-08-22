@@ -10,7 +10,6 @@ from sqlalchemy import select
 
 from app.core.extensions import db
 from app.services.geo import (
-    configure_location_choices as configure_host_location_choices,
     country_name as host_country_name,
     normalize_country_code,
     normalize_zone_code,
@@ -23,12 +22,6 @@ from app.models.zone import Zone
 
 class LocationReferenceError(ValueError):
     """Raised when portable AutoGrid360 location codes do not match host references."""
-
-
-def configure_location_form(form) -> None:
-    """Populate one AutoGrid360 form from Flask-AAS Country/Zone references."""
-
-    configure_host_location_choices(form)
 
 
 def validate_location_codes(
