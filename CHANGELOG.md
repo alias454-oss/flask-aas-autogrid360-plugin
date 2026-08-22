@@ -3,6 +3,17 @@
 This changelog records implementation changes to the Flask-AAS AutoGrid360 application plugin.
 
 
+## 2026-08-22 — Flask-AAS structural integration checkpoint
+
+Synchronized AutoGrid360 with the Flask-AAS AAS-035 structural cleanup without changing plugin behavior or persistence contracts.
+
+- Updated host authentication imports to the consolidated `app.core.decorators` boundary.
+- Updated operational host integrations to the new `app.services` boundary, including audit/tracking, durable-session activity, profile images, outbound mail, spam checks, and geographic reference helpers.
+- Updated host geographic helper imports from the former `app.core.locations` module to `app.services.geo`.
+- Kept foundational Flask-AAS integrations under `app.core`; AutoGrid360 continues to consume host-owned authentication, security, configuration, and extension contracts rather than duplicating them.
+- No AutoGrid360 schema, migration, persisted-setting, route, or public-behavior change was introduced. The durable plugin migration remains `98b97bf7aa67`.
+- Latest user-confirmed complete regressions after the coordinated host/plugin structural migration: **372 passed, 20 warnings, 276 subtests passed** for AutoGrid360 and **454 passed, 13 warnings, 34 subtests passed** for Flask-AAS.
+
 ## 2026-08-22 — Measured query/data-loading optimization checkpoint
 
 Completed the current evidence-driven AutoGrid360 query and ORM-loading pass against the composed Flask-AAS application. The work targeted demonstrated N+1 behavior, accidental eager loading, request-session churn, and unnecessary full ORM materialization rather than pursuing a minimum-query benchmark.
