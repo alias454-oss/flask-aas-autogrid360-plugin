@@ -20,11 +20,14 @@ Flask-AAS provides authentication, accounts, MFA, sessions, host roles, mail, CA
 
 ## Validation
 
-Latest user-confirmed automated baseline after the current input and POST/redirect UX hardening:
+Latest user-confirmed automated baseline after the current measured query/data-loading pass:
 
 ```text
-AutoGrid360: 360 passed, 15 warnings, 276 subtests passed
+AutoGrid360: 372 passed, 20 warnings, 276 subtests passed
+Flask-AAS:   453 passed, 13 warnings, 34 subtests passed
 ```
+
+The current public inventory path has been profiled for query scaling and ORM materialization. Representative 10/20/50-listing pages remain at a fixed 8 SELECTs after removing repeated settings/image work and unused list-route feature loading; sitemap/search/detail paths also use bounded or scalar loading where measurement showed material waste.
 
 The current durable AutoGrid360 migration checkpoint is:
 

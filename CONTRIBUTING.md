@@ -25,6 +25,9 @@ python -m pytest
 - Keep AutoGrid360 concerns inside the plugin; reuse Flask-AAS for authentication, accounts, mail,
   CAPTCHA, audit, profile identity, and other host services.
 - Prefer small, reviewable changes with focused regression coverage.
+- For performance work, measure query count/object loading first and fix demonstrated N+1, eager-loading,
+  or full-materialization problems with the smallest route-local change; do not add caches, indexes,
+  or global loader changes from intuition alone.
 - Preserve SQLite and PostgreSQL compatibility. SQL/schema changes need PostgreSQL validation.
 - Keep seller privacy, listing ownership, moderation, filesystem paths, uploads, and restore bundles
   as explicit trust boundaries.
