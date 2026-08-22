@@ -7,12 +7,17 @@ from pathlib import Path
 from flask import Blueprint, abort, flash, redirect, request, send_file, url_for
 from flask_login import current_user
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import lazyload, load_only
 from werkzeug.utils import secure_filename
 
 from app.core.auth import login_required
 from app.core.extensions import db, limiter
 from app.core.security import get_client_ip
-from app.plugins.autogrid360.services.audit import audit_listing_action
+from app.core.sessions import session_activity_exempt
+from app.plugins.autogrid360.services.audit import (
+    audit_listing_action,
+    audit_listing_image_read,
+)
 from app.plugins.autogrid360.services.auth import can_manage_listing, is_autogrid360_admin
 from app.plugins.autogrid360.forms.images import (
     ImageActionForm,
@@ -398,14 +403,26 @@ def delete(listing_id, image_id):
 
 
 @images_bp.get("/<int:listing_id>/images/<int:image_id>/<variant>")
+@session_activity_exempt
 def file(listing_id, image_id, variant):
     """Serve a normalized listing image to an authorized viewer."""
 
-    listing = Listing.query.filter_by(id=listing_id).first_or_404()
-    image = ListingImage.query.filter_by(
-        id=image_id,
-        listing_id=listing.id,
-    ).first_or_404()
+    record = (
+        db.session.query(Listing, ListingImage)
+        .join(ListingImage, ListingImage.listing_id == Listing.id)
+        .options(
+            load_only(Listing.id, Listing.seller_id, Listing.status),
+            lazyload(Listing.vehicle),
+        )
+        .filter(
+            Listing.id == listing_id,
+            ListingImage.id == image_id,
+        )
+        .first()
+    )
+    if record is None:
+        abort(404)
+    listing, image = record
 
     if not listing_is_publicly_visible(listing):
         if not current_user.is_authenticated:
@@ -423,6 +440,8 @@ def file(listing_id, image_id, variant):
     path = image_path(storage_key)
     if not path.is_file():
         abort(404)
+
+    audit_listing_image_read(listing, image, variant=variant)
 
     return send_file(
         path,

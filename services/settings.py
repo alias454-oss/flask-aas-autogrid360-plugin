@@ -3,7 +3,7 @@
 
 from dataclasses import dataclass
 
-from flask import current_app
+from flask import current_app, has_request_context, request
 
 from app.core.extensions import db
 from app.plugins.autogrid360.models import (
@@ -29,6 +29,7 @@ from app.plugins.autogrid360.models.settings import (
 
 
 SETTINGS_ROW_ID = 1
+_REQUEST_SETTINGS_CACHE_KEY = "autogrid360.settings_row"
 
 
 @dataclass(frozen=True)
@@ -88,7 +89,23 @@ class ListingPolicy:
 
 
 def get_settings_row() -> AutoGrid360Settings | None:
-    """Return the persisted singleton settings row without creating it."""
+    """Return the persisted singleton settings row without creating it.
+
+    During a request, retain the singleton row in that request's WSGI
+    environment so repeated policy/formatting helpers do not re-query the
+    same row after SQLAlchemy's weak identity-map reference is released.
+    Outside a request context, preserve the normal direct database lookup so
+    CLI, maintenance, and tests do not retain settings across operations.
+    """
+
+    if has_request_context():
+        environ = request.environ
+        if _REQUEST_SETTINGS_CACHE_KEY in environ:
+            return environ[_REQUEST_SETTINGS_CACHE_KEY]
+
+        settings = db.session.get(AutoGrid360Settings, SETTINGS_ROW_ID)
+        environ[_REQUEST_SETTINGS_CACHE_KEY] = settings
+        return settings
 
     return db.session.get(AutoGrid360Settings, SETTINGS_ROW_ID)
 

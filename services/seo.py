@@ -26,10 +26,40 @@ def slugify(value: str | None, *, fallback: str = "listing") -> str:
     return slug[:96].rstrip("-") or fallback
 
 
+def listing_slug_from_parts(
+    *,
+    year=None,
+    make: str | None = None,
+    model: str | None = None,
+    trim: str | None = None,
+    title: str | None = None,
+) -> str:
+    """Return the canonical listing slug from scalar vehicle/listing values."""
+
+    vehicle_name = " ".join(
+        part
+        for part in (
+            str(year) if year else "",
+            make or "",
+            model or "",
+            trim or "",
+        )
+        if part
+    )
+    return slugify(vehicle_name or title)
+
+
 def listing_slug(listing) -> str:
     """Return the current canonical slug for one listing."""
 
-    return slugify(listing_vehicle_name(listing) or listing.title)
+    vehicle = listing.vehicle
+    return listing_slug_from_parts(
+        year=vehicle.year,
+        make=vehicle.make,
+        model=vehicle.model,
+        trim=vehicle.trim,
+        title=listing.title,
+    )
 
 
 def listing_url(listing, *, external: bool = False) -> str:
@@ -160,11 +190,21 @@ def listing_structured_data(listing, *, canonical_url: str, image_url: str | Non
     return payload
 
 
+def sitemap_lastmod_from_values(updated_at, published_at, created_at) -> str:
+    """Return sitemap lastmod from scalar listing timestamp values."""
+
+    value = updated_at or published_at or created_at
+    return value.date().isoformat()
+
+
 def sitemap_lastmod(listing) -> str:
     """Return the actual listing-content modification date for sitemap output."""
 
-    value = listing.updated_at or listing.published_at or listing.created_at
-    return value.date().isoformat()
+    return sitemap_lastmod_from_values(
+        listing.updated_at,
+        listing.published_at,
+        listing.created_at,
+    )
 
 
 def rss_datetime(value) -> str:

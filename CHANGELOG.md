@@ -3,6 +3,24 @@
 This changelog records implementation changes to the Flask-AAS AutoGrid360 application plugin.
 
 
+## 2026-08-22 — Measured query/data-loading optimization checkpoint
+
+Completed the current evidence-driven AutoGrid360 query and ORM-loading pass against the composed Flask-AAS application. The work targeted demonstrated N+1 behavior, accidental eager loading, request-session churn, and unnecessary full ORM materialization rather than pursuing a minimum-query benchmark.
+
+- Added request-scoped AutoGrid360 settings reuse so repeated policy/formatting checks within one request no longer reload the singleton settings row.
+- Replaced per-listing primary-image access with one bounded batch query for the current page while preserving explicit-primary, position, and ID fallback ordering.
+- Made listing-image delivery load only the listing/image authorization fields it needs instead of materializing the vehicle/reference graph.
+- Coordinated image delivery with the Flask-AAS session-activity contract: automatic image requests do not advance interactive inactivity state, while successful authenticated image reads retain exact isolated audit attribution.
+- Reworked the AutoGrid360 sitemap to scalar projections. The measured sitemap fell from 5 SELECTs / 1,751 ORM objects / 2 relationship loads to 3 SELECTs / 1 ORM object / 0 relationship loads.
+- Moved the public listing view-count increment into an isolated atomic database transaction so committing the counter no longer expires and reloads the request ORM graph.
+- Changed Advanced Search facet/seller choices to scalar/lightweight values rather than full `ReferenceValue` and `User` ORM instances.
+- Suppressed `Vehicle.features` eager/selectin loading only on public inventory and seller-list routes that do not render features; detail/edit/export behavior keeps normal feature loading.
+- With the coordinated Flask-AAS location scalarization, the representative 20-listing public inventory request moved from the original 49 SELECTs / 194 ORM objects / 21 relationship loads to 8 SELECTs / 89 ORM objects / 0 relationship loads. The 10/20/50 listing pages now remain at the same 8 SELECTs instead of scaling query count with page size.
+- The representative anonymous inventory page plus 20 thumbnail GETs moved from 169 SELECTs / 480 ORM objects / 41 relationship loads to 68 SELECTs / 169 ORM objects / 0 relationship loads.
+- Across the full profiler workload, the composed application moved from 890 to 377 SQL statements, 846 to 343 SELECTs, 4,346 to 1,028 ORM object materializations, and 235 to 16 relationship loads. Audit INSERTs for authenticated image reads are intentional evidence and are not treated as wasted writes.
+- No AutoGrid360 schema or migration change was required. The durable plugin migration remains `98b97bf7aa67`.
+- Latest user-confirmed complete regressions after this pass: **372 passed, 20 warnings, 276 subtests passed** for AutoGrid360 and **453 passed, 13 warnings, 34 subtests passed** for Flask-AAS.
+
 ## 2026-08-21 — Input and POST/redirect UX hardening checkpoint
 
 - Made public seller inquiry availability follow the authoritative Flask-AAS mail state. When usable outbound mail is unavailable, the public listing no longer presents a functional-looking contact form and direct inquiry GET/POST access fails closed instead of accepting a message that cannot be delivered. AutoGrid360 continues to reuse the host mail service rather than duplicating SMTP configuration.

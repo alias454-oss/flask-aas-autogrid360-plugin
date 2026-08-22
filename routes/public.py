@@ -17,7 +17,8 @@ from flask import (
     url_for,
 )
 from flask_login import current_user
-from sqlalchemy import case, func
+from sqlalchemy import case, func, update
+from sqlalchemy.orm import aliased, defaultload, lazyload
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.avatar import profile_image_data_uri
@@ -66,11 +67,12 @@ from app.plugins.autogrid360.services.seo import (
     listing_meta_title,
     listing_robots_meta,
     listing_slug,
+    listing_slug_from_parts,
     listing_structured_data,
     listing_url,
     listing_vehicle_name,
     rss_datetime,
-    sitemap_lastmod,
+    sitemap_lastmod_from_values,
 )
 from app.plugins.autogrid360.services.geo import (
     RADIUS_OPTIONS,
@@ -87,7 +89,11 @@ from app.plugins.autogrid360.models import (
     STATUS_SALE_PENDING,
     STATUS_SOLD,
     Listing,
+    ListingImage,
+    ReferenceValue,
     SellerProfile,
+    Vehicle,
+    VehicleModel,
 )
 
 
@@ -140,6 +146,33 @@ def _primary_image(listing):
     return primary or next(iter(listing.images), None)
 
 
+def _primary_images_for_listings(listings):
+    """Return one display image per listing without loading each image collection."""
+
+    listing_ids = [listing.id for listing in listings]
+    if not listing_ids:
+        return {}
+
+    candidate = aliased(ListingImage)
+    preferred_image_id = (
+        db.select(candidate.id)
+        .where(candidate.listing_id == ListingImage.listing_id)
+        .order_by(
+            candidate.is_primary.desc(),
+            candidate.position.asc(),
+            candidate.id.asc(),
+        )
+        .limit(1)
+        .correlate(ListingImage)
+        .scalar_subquery()
+    )
+    images = ListingImage.query.filter(
+        ListingImage.listing_id.in_(listing_ids),
+        ListingImage.id == preferred_image_id,
+    ).all()
+    return {image.listing_id: image for image in images}
+
+
 def _seller_label(seller: User, profile: SellerProfile | None) -> str:
     """Return one public marketplace label without exposing account email."""
 
@@ -174,20 +207,20 @@ def _share_mailto(listing: Listing, listing_url: str) -> str:
 
 
 def _increment_view_count(listing: Listing) -> None:
-    """Best-effort atomic increment of the public listing view counter."""
+    """Best-effort atomic increment without expiring the request ORM graph."""
 
+    listing_table = Listing.__table__
     try:
-        Listing.query.filter_by(id=listing.id).update(
-            {
-                Listing.view_count: Listing.view_count + 1,
-                Listing.updated_at: Listing.updated_at,
-            },
-            synchronize_session=False,
-        )
-        db.session.commit()
-        db.session.expire(listing, ["view_count"])
+        with db.engine.begin() as connection:
+            connection.execute(
+                update(listing_table)
+                .where(listing_table.c.id == listing.id)
+                .values(
+                    view_count=listing_table.c.view_count + 1,
+                    updated_at=listing_table.c.updated_at,
+                )
+            )
     except SQLAlchemyError:
-        db.session.rollback()
         logger.exception(
             "AutoGrid360 public listing view count update failed for listing_id=%s",
             listing.id,
@@ -446,10 +479,7 @@ def _render_inventory(criteria, *, page: int, sort: str, requested_per_page: int
             if pagination.has_next
             else None
         ),
-        primary_images={
-            listing.id: _primary_image(listing)
-            for listing in pagination.items
-        },
+        primary_images=_primary_images_for_listings(pagination.items),
         distance_by_id={
             listing.id: prepared.distance_by_id.get(listing.id)
             for listing in pagination.items
@@ -642,33 +672,69 @@ def sitemap():
             "lastmod": None,
         },
     ]
-    active_listings = (
-        Listing.query
-        .filter_by(status=STATUS_ACTIVE)
+    make_ref = aliased(ReferenceValue)
+    active_rows = db.session.execute(
+        db.select(
+            Listing.id.label("listing_id"),
+            Listing.title,
+            Listing.seller_id,
+            Listing.updated_at,
+            Listing.published_at,
+            Listing.created_at,
+            Vehicle.year,
+            Vehicle.trim,
+            Vehicle.model_text,
+            make_ref.label.label("make_label"),
+            VehicleModel.label.label("model_label"),
+        )
+        .join(Vehicle, Listing.vehicle_id == Vehicle.id)
+        .join(make_ref, Vehicle.make_id == make_ref.id)
+        .outerjoin(VehicleModel, Vehicle.model_id == VehicleModel.id)
+        .where(Listing.status == STATUS_ACTIVE)
         .order_by(Listing.id.asc())
-        .all()
-    )
-    items.extend(
-        {
-            "loc": listing_url(listing, external=True),
-            "lastmod": sitemap_lastmod(listing),
-        }
-        for listing in active_listings
-    )
+    ).all()
 
-    seller_ids = sorted({listing.seller_id for listing in active_listings})
+    seller_ids = set()
+    for row in active_rows:
+        seller_ids.add(row.seller_id)
+        items.append(
+            {
+                "loc": url_for(
+                    "autogrid360.listing_public",
+                    listing_id=row.listing_id,
+                    slug=listing_slug_from_parts(
+                        year=row.year,
+                        make=row.make_label,
+                        model=row.model_label or row.model_text,
+                        trim=row.trim,
+                        title=row.title,
+                    ),
+                    _external=True,
+                ),
+                "lastmod": sitemap_lastmod_from_values(
+                    row.updated_at,
+                    row.published_at,
+                    row.created_at,
+                ),
+            }
+        )
+
     if seller_ids:
-        sellers = User.query.filter(User.id.in_(seller_ids)).order_by(User.username).all()
+        seller_usernames = db.session.execute(
+            db.select(User.username)
+            .where(User.id.in_(seller_ids))
+            .order_by(User.username)
+        ).scalars().all()
         items.extend(
             {
                 "loc": url_for(
                     "autogrid360.seller_detail",
-                    username=seller.username,
+                    username=username,
                     _external=True,
                 ),
                 "lastmod": None,
             }
-            for seller in sellers
+            for username in seller_usernames
         )
 
     return Response(
@@ -759,7 +825,9 @@ def seller_detail(username):
         (Listing.status == STATUS_SALE_PENDING, 1),
         else_=2,
     )
-    active_query = Listing.query.filter(
+    active_query = Listing.query.options(
+        defaultload(Listing.vehicle).lazyload(Vehicle.features)
+    ).filter(
         Listing.seller_id == seller.id,
         Listing.status.in_(public_listing_statuses()),
     ).order_by(
@@ -794,10 +862,7 @@ def seller_detail(username):
         seller_location=user_public_location(seller),
         listings=pagination.items,
         pagination=pagination,
-        primary_images={
-            listing.id: _primary_image(listing)
-            for listing in pagination.items
-        },
+        primary_images=_primary_images_for_listings(pagination.items),
         title=_seller_label(seller, profile),
         seo_title=f"{_seller_label(seller, profile)} Vehicle Listings",
         description=f"Browse public vehicle listings from {_seller_label(seller, profile)} on AutoGrid360.",

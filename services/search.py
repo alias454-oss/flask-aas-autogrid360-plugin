@@ -11,7 +11,7 @@ from decimal import Decimal, InvalidOperation
 
 from flask import url_for
 from sqlalchemy import and_, case, false, func, or_
-from sqlalchemy.orm import aliased
+from sqlalchemy.orm import aliased, defaultload, lazyload
 
 from app.core.extensions import db
 from app.models import Country, User, Zone
@@ -79,6 +79,14 @@ PAGE_SIZE_OPTIONS = (10, 20, 50, 100)
 
 
 @dataclass(frozen=True)
+class InventoryReferenceChoice:
+    """One automotive reference option represented by public inventory."""
+
+    key: str
+    label: str
+
+
+@dataclass(frozen=True)
 class InventoryModelChoice:
     """One model option represented by active public inventory."""
 
@@ -101,15 +109,15 @@ class InventoryZoneChoice:
 class InventorySearchFacets:
     """Selectable Advanced Search values derived from active inventory."""
 
-    makes: list[ReferenceValue]
+    makes: list[InventoryReferenceChoice]
     models: list[InventoryModelChoice]
     years: list[int]
-    vehicle_types: list[ReferenceValue]
-    drivetrains: list[ReferenceValue]
-    features: list[ReferenceValue]
+    vehicle_types: list[InventoryReferenceChoice]
+    drivetrains: list[InventoryReferenceChoice]
+    features: list[InventoryReferenceChoice]
     conditions: list[str]
     transmissions: list[str]
-    sellers: list[User]
+    sellers: list[str]
     countries: list[tuple[str, str]]
     zones: list[InventoryZoneChoice]
 
@@ -215,11 +223,22 @@ class InventorySearchQuery:
     effective_distance_unit: str | None
 
 
-def _active_reference_choices(category: str, vehicle_column) -> list[ReferenceValue]:
-    """Return reference values actually attached to public inventory."""
+def _reference_choices_from_rows(rows) -> list[InventoryReferenceChoice]:
+    """Build lightweight public-search reference choices from scalar rows."""
 
-    return (
-        ReferenceValue.query
+    return [InventoryReferenceChoice(key=key, label=label) for key, label, _sort, _id in rows]
+
+
+def _active_reference_choices(category: str, vehicle_column) -> list[InventoryReferenceChoice]:
+    """Return lightweight references actually attached to public inventory."""
+
+    rows = (
+        db.session.query(
+            ReferenceValue.key,
+            ReferenceValue.label,
+            ReferenceValue.sort_order,
+            ReferenceValue.id,
+        )
         .join(Vehicle, vehicle_column == ReferenceValue.id)
         .join(Listing, Listing.vehicle_id == Vehicle.id)
         .filter(
@@ -234,13 +253,19 @@ def _active_reference_choices(category: str, vehicle_column) -> list[ReferenceVa
         )
         .all()
     )
+    return _reference_choices_from_rows(rows)
 
 
-def _active_feature_choices() -> list[ReferenceValue]:
-    """Return feature references represented by public inventory."""
+def _active_feature_choices() -> list[InventoryReferenceChoice]:
+    """Return lightweight feature references represented by public inventory."""
 
-    return (
-        ReferenceValue.query
+    rows = (
+        db.session.query(
+            ReferenceValue.key,
+            ReferenceValue.label,
+            ReferenceValue.sort_order,
+            ReferenceValue.id,
+        )
         .join(
             vehicle_features,
             vehicle_features.c.reference_value_id == ReferenceValue.id,
@@ -259,6 +284,7 @@ def _active_feature_choices() -> list[ReferenceValue]:
         )
         .all()
     )
+    return _reference_choices_from_rows(rows)
 
 
 def _casefold_unique(values) -> list[str]:
@@ -396,14 +422,17 @@ def active_inventory_search_facets() -> InventorySearchFacets:
         )
     )
 
-    sellers = (
-        User.query
-        .join(Listing, Listing.seller_id == User.id)
-        .filter(Listing.status.in_(public_listing_statuses()))
-        .distinct()
-        .order_by(User.username.asc())
-        .all()
-    )
+    sellers = [
+        username
+        for username, in (
+            db.session.query(User.username)
+            .join(Listing, Listing.seller_id == User.id)
+            .filter(Listing.status.in_(public_listing_statuses()))
+            .distinct()
+            .order_by(User.username.asc())
+            .all()
+        )
+    ]
 
     countries = (
         db.session.query(Country.iso_code_2, Country.name)
@@ -676,7 +705,10 @@ def prepare_inventory_query(
 
     make_ref = aliased(ReferenceValue)
     query = (
-        Listing.query.join(Vehicle)
+        Listing.query.options(
+            defaultload(Listing.vehicle).lazyload(Vehicle.features)
+        )
+        .join(Vehicle)
         .join(make_ref, Vehicle.make_id == make_ref.id)
         .filter(Listing.status.in_(public_listing_statuses()))
     )

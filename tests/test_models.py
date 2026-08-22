@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 
 from flask import Flask
-from sqlalchemy import inspect
+from sqlalchemy import event, inspect
 from sqlalchemy.exc import IntegrityError
 
 from app.core.extensions import db
@@ -60,6 +60,7 @@ from app.plugins.autogrid360.services.settings import (
     distance_policy,
     listing_images_path,
     listing_policy,
+    seller_inventory_import_allowed,
 )
 from app.plugins.autogrid360.tests.support import seed_location_references
 
@@ -364,6 +365,61 @@ class AutoGrid360ModelTests(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             image_path("../escape.jpg")
+
+    def test_settings_helpers_reuse_singleton_row_within_request(self):
+        db.session.add(
+            AutoGrid360Settings(
+                id=1,
+                currency_code="EUR",
+                currency_symbol="€",
+                default_distance_unit="kilometers",
+            )
+        )
+        db.session.commit()
+        statements = []
+
+        def capture_statement(conn, cursor, statement, parameters, context, executemany):
+            statements.append(statement)
+
+        with self.app.test_request_context("/autogrid360/"):
+            event.listen(db.engine, "before_cursor_execute", capture_statement)
+            try:
+                self.assertTrue(listing_policy().require_approval)
+                self.assertEqual(currency_policy().code, "EUR")
+                self.assertEqual(distance_policy().default_unit, "kilometers")
+                self.assertEqual(listing_images_path(), "uploads/listings")
+                self.assertFalse(seller_inventory_import_allowed())
+                self.assertEqual(format_currency(Decimal("12345.6")), "€12,345.60")
+            finally:
+                event.remove(db.engine, "before_cursor_execute", capture_statement)
+
+        settings_selects = [
+            statement
+            for statement in statements
+            if statement.lstrip().lower().startswith("select")
+            and "plugin_autogrid360_settings" in statement.lower()
+        ]
+        self.assertEqual(len(settings_selects), 1, settings_selects)
+
+    def test_settings_request_cache_does_not_leak_across_requests(self):
+        db.session.add(
+            AutoGrid360Settings(
+                id=1,
+                show_sale_pending_listings_publicly=True,
+            )
+        )
+        db.session.commit()
+
+        with self.app.test_request_context("/autogrid360/feed.xml"):
+            self.assertTrue(listing_policy().show_sale_pending_publicly)
+
+        settings = db.session.get(AutoGrid360Settings, 1)
+        settings.show_sale_pending_listings_publicly = False
+        db.session.commit()
+
+        with self.app.test_request_context("/autogrid360/feed.xml"):
+            self.assertFalse(listing_policy().show_sale_pending_publicly)
+
 
     def test_listing_policy_defaults_to_secure_moderation_settings(self):
         policy = listing_policy()
