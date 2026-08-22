@@ -7,7 +7,12 @@ from types import SimpleNamespace
 from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
 
+from sqlalchemy import event
+from sqlalchemy.orm import Session
+
 from app.core.extensions import db
+from app.core.sessions import request_advances_session_activity
+from app.models import User
 from app.plugins.autogrid360.models import (
     STATUS_ACTIVE,
     STATUS_DRAFT,
@@ -18,6 +23,8 @@ from app.plugins.autogrid360.models import (
     CATEGORY_VEHICLE_TYPE,
     AutoGrid360Settings,
     Listing,
+    ReferenceValue,
+    Vehicle,
 )
 from app.plugins.autogrid360.tests.listing_support import AutoGrid360ListingRouteTestCase
 
@@ -93,6 +100,264 @@ class AutoGrid360PublicListingRouteTests(AutoGrid360ListingRouteTestCase):
         self.assertIn('class="autogrid360-inventory-thumb"', body)
         self.assertIn('class="autogrid360-inventory-thumb-placeholder"', body)
         self.assertIn("No photo", body)
+
+
+    def test_public_image_route_does_not_advance_session_activity(self):
+        with self.app.test_request_context(
+            "/autogrid360/listings/1/images/1/thumb"
+        ):
+            self.assertFalse(request_advances_session_activity())
+
+
+    def test_authenticated_public_image_read_is_attributed_in_audit(self):
+        listing = self._create_active_inventory_listing(
+            title="Audited image read listing",
+            year=2022,
+            make="Honda",
+            model="Civic",
+        )
+        image = self._create_image(
+            listing,
+            position=0,
+            is_primary=True,
+            token="audit-read",
+        )
+        db.session.flush()
+        listing_id = listing.id
+        seller_id = listing.seller_id
+        image_id = image.id
+        reader_id = self.other_user.id
+        db.session.commit()
+
+        client = self.app.test_client()
+        self._login(client, self.other_user)
+        with patch(
+            "app.plugins.autogrid360.services.audit.audit_activity_enabled",
+            return_value=True,
+        ), patch(
+            "app.plugins.autogrid360.services.audit.log_action_isolated"
+        ) as log_action:
+            response = client.get(
+                f"/autogrid360/listings/{listing_id}/images/{image_id}/thumb"
+            )
+
+        self.assertEqual(response.status_code, 200)
+        log_action.assert_called_once_with(
+            user_id=reader_id,
+            action="autogrid360_listing_image_read",
+            target=f"listing:{listing_id}",
+            extra_data={
+                "listing_id": listing_id,
+                "seller_id": seller_id,
+                "image_id": image_id,
+                "variant": "thumb",
+            },
+        )
+
+    def test_anonymous_public_image_read_does_not_create_user_audit_event(self):
+        listing = self._create_active_inventory_listing(
+            title="Anonymous image read listing",
+            year=2022,
+            make="Honda",
+            model="Civic",
+        )
+        image = self._create_image(
+            listing,
+            position=0,
+            is_primary=True,
+            token="anonymous-read",
+        )
+        db.session.flush()
+        listing_id = listing.id
+        image_id = image.id
+        db.session.commit()
+
+        with patch(
+            "app.plugins.autogrid360.services.audit.audit_activity_enabled",
+            return_value=True,
+        ), patch(
+            "app.plugins.autogrid360.services.audit.log_action_isolated"
+        ) as log_action:
+            response = self.app.test_client().get(
+                f"/autogrid360/listings/{listing_id}/images/{image_id}/thumb"
+            )
+
+        self.assertEqual(response.status_code, 200)
+        log_action.assert_not_called()
+
+    def test_public_image_route_avoids_vehicle_object_graph(self):
+        listing = self._create_active_inventory_listing(
+            title="Lean image route listing",
+            year=2022,
+            make="Honda",
+            model="Civic",
+        )
+        image = self._create_image(
+            listing,
+            position=0,
+            is_primary=True,
+            token="lean-route",
+        )
+        db.session.flush()
+        listing_id = listing.id
+        image_id = image.id
+        db.session.commit()
+
+        statements = []
+
+        def capture_statement(
+            _conn, _cursor, statement, _parameters, _context, _many
+        ):
+            statements.append(statement)
+
+        event.listen(db.engine, "before_cursor_execute", capture_statement)
+        try:
+            response = self.app.test_client().get(
+                f"/autogrid360/listings/{listing_id}/images/{image_id}/thumb"
+            )
+        finally:
+            event.remove(db.engine, "before_cursor_execute", capture_statement)
+
+        self.assertEqual(response.status_code, 200)
+        selects = [
+            statement
+            for statement in statements
+            if statement.lstrip().upper().startswith("SELECT")
+        ]
+        self.assertFalse(
+            any("plugin_autogrid360_vehicles" in statement for statement in selects)
+        )
+        self.assertFalse(
+            any(
+                "plugin_autogrid360_reference_values" in statement
+                for statement in selects
+            )
+        )
+        listing_image_selects = [
+            statement
+            for statement in selects
+            if "plugin_autogrid360_listings" in statement
+            and "plugin_autogrid360_listing_images" in statement
+        ]
+        self.assertEqual(len(listing_image_selects), 1)
+
+
+    def test_public_inventory_batches_primary_image_selection(self):
+        self.app.config["AUTOGRID360_LISTINGS_PER_PAGE"] = 10
+        for index in range(3):
+            listing = self._create_active_inventory_listing(
+                title=f"Batched image listing {index}",
+                year=2020 + index,
+                make="Honda",
+                model="Civic",
+            )
+            self._create_image(
+                listing,
+                position=0,
+                is_primary=False,
+                token=f"fallback-{index}",
+            )
+            self._create_image(
+                listing,
+                position=1,
+                is_primary=True,
+                token=f"primary-{index}",
+            )
+        db.session.commit()
+
+        statements = []
+
+        def capture_statement(
+            _conn, _cursor, statement, _parameters, _context, _many
+        ):
+            statements.append(statement)
+
+        event.listen(db.engine, "before_cursor_execute", capture_statement)
+        try:
+            response = self.app.test_client().get("/autogrid360/")
+        finally:
+            event.remove(db.engine, "before_cursor_execute", capture_statement)
+
+        self.assertEqual(response.status_code, 200)
+        image_selects = [
+            statement
+            for statement in statements
+            if statement.lstrip().upper().startswith("SELECT")
+            and "plugin_autogrid360_listing_images" in statement
+        ]
+        self.assertEqual(len(image_selects), 1)
+
+
+    def test_public_inventory_does_not_eager_load_vehicle_features(self):
+        listing = self._create_active_inventory_listing(
+            title="Feature-light inventory listing",
+            year=2020,
+            make="Honda",
+            model="Civic",
+            features=["Air Conditioning"],
+        )
+        db.session.commit()
+        db.session.remove()
+
+        statements = []
+
+        def capture_statement(
+            _conn, _cursor, statement, _parameters, _context, _many
+        ):
+            statements.append(statement)
+
+        event.listen(db.engine, "before_cursor_execute", capture_statement)
+        try:
+            response = self.app.test_client().get("/autogrid360/")
+        finally:
+            event.remove(db.engine, "before_cursor_execute", capture_statement)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Feature-light inventory listing", response.get_data(as_text=True))
+        feature_selects = [
+            statement
+            for statement in statements
+            if statement.lstrip().upper().startswith("SELECT")
+            and "plugin_autogrid360_vehicle_features" in statement
+        ]
+        self.assertEqual(feature_selects, [])
+
+
+    def test_public_seller_inventory_does_not_eager_load_vehicle_features(self):
+        self._create_active_inventory_listing(
+            title="Feature-light seller listing",
+            year=2020,
+            make="Honda",
+            model="Civic",
+            features=["Air Conditioning"],
+        )
+        db.session.commit()
+        seller_username = self.seller.username
+        db.session.remove()
+
+        statements = []
+
+        def capture_statement(
+            _conn, _cursor, statement, _parameters, _context, _many
+        ):
+            statements.append(statement)
+
+        event.listen(db.engine, "before_cursor_execute", capture_statement)
+        try:
+            response = self.app.test_client().get(
+                f"/autogrid360/sellers/{seller_username}"
+            )
+        finally:
+            event.remove(db.engine, "before_cursor_execute", capture_statement)
+
+        self.assertEqual(response.status_code, 200)
+        feature_selects = [
+            statement
+            for statement in statements
+            if statement.lstrip().upper().startswith("SELECT")
+            and "plugin_autogrid360_vehicle_features" in statement
+        ]
+        self.assertEqual(feature_selects, [])
 
 
     def test_public_search_filters_us_inventory_by_postal_radius(self):
@@ -938,6 +1203,35 @@ class AutoGrid360PublicListingRouteTests(AutoGrid360ListingRouteTestCase):
         self.assertIn("Search Inventory", body)
         self.assertNotIn('id="inventory-results-controls"', body)
         self.assertNotIn(listing.title, body)
+
+
+    def test_advanced_search_facets_do_not_materialize_reference_or_seller_objects(self):
+        self._create_active_inventory_listing(
+            title="Scalar facet Civic",
+            year=2020,
+            make="Honda",
+            model="Civic",
+            vehicle_type="Sedan",
+            drivetrain="FWD",
+            features=["Air Conditioning"],
+        )
+        db.session.commit()
+        db.session.remove()
+
+        loaded_types = []
+
+        def capture_loaded(_session, instance):
+            loaded_types.append(type(instance))
+
+        event.listen(Session, "loaded_as_persistent", capture_loaded)
+        try:
+            response = self.app.test_client().get("/autogrid360/listings/search")
+        finally:
+            event.remove(Session, "loaded_as_persistent", capture_loaded)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(ReferenceValue, loaded_types)
+        self.assertNotIn(User, loaded_types)
 
 
     def test_advanced_search_facets_only_offer_active_inventory_values(self):
@@ -1952,6 +2246,39 @@ class AutoGrid360PublicListingRouteTests(AutoGrid360ListingRouteTestCase):
         )
 
 
+    def test_autogrid360_sitemap_does_not_materialize_listing_vehicle_or_seller_objects(self):
+        self._create_active_inventory_listing(
+            title="Scalar sitemap Civic",
+            year=2020,
+            make="Honda",
+            model="Civic",
+        )
+        self._create_active_inventory_listing(
+            title="Scalar sitemap Focus",
+            year=2019,
+            make="Ford",
+            model="Focus",
+        )
+        db.session.commit()
+        db.session.remove()
+
+        loaded_types = []
+
+        def capture_loaded(_session, instance):
+            loaded_types.append(type(instance))
+
+        event.listen(Session, "loaded_as_persistent", capture_loaded)
+        try:
+            response = self.app.test_client().get("/autogrid360/sitemap.xml")
+        finally:
+            event.remove(Session, "loaded_as_persistent", capture_loaded)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(Listing, loaded_types)
+        self.assertNotIn(Vehicle, loaded_types)
+        self.assertNotIn(User, loaded_types)
+
+
     def test_autogrid360_sitemap_contains_only_active_inventory_urls(self):
         active = self._create_active_inventory_listing(
             title="Active Civic",
@@ -2080,6 +2407,55 @@ class AutoGrid360PublicListingRouteTests(AutoGrid360ListingRouteTestCase):
             f'<link rel="canonical" href="http://localhost/autogrid360/listings/{listing.id}/2020-honda-civic">',
             body,
         )
+
+
+    def test_view_count_increment_does_not_expire_loaded_listing_state(self):
+        from app.plugins.autogrid360.routes.public import _increment_view_count
+
+        listing = self._create_active_inventory_listing(
+            title="Loaded-state Civic",
+            year=2020,
+            make="Honda",
+            model="Civic",
+        )
+        self._create_image(
+            listing,
+            position=0,
+            is_primary=True,
+            token="loaded-state",
+        )
+        db.session.commit()
+
+        listing = db.session.get(Listing, listing.id)
+        self.assertIsNotNone(listing)
+        _ = listing.vehicle.make
+        _ = list(listing.images)
+        _ = listing.seller.username
+
+        statements = []
+
+        def capture_statement(conn, cursor, statement, parameters, context, executemany):
+            statements.append(statement)
+
+        event.listen(db.engine, "before_cursor_execute", capture_statement)
+        try:
+            _increment_view_count(listing)
+            self.assertEqual(listing.title, "Loaded-state Civic")
+            self.assertEqual(listing.vehicle.make, "Honda")
+            self.assertEqual(len(listing.images), 1)
+            self.assertEqual(listing.seller.username, self.seller.username)
+        finally:
+            event.remove(db.engine, "before_cursor_execute", capture_statement)
+
+        selects = [
+            statement
+            for statement in statements
+            if statement.lstrip().lower().startswith("select")
+        ]
+        self.assertEqual(selects, [])
+
+        db.session.refresh(listing)
+        self.assertEqual(listing.view_count, 1)
 
 
     def test_public_view_count_does_not_change_listing_content_timestamp(self):

@@ -139,7 +139,7 @@
             <select class="form-control" id="seller" name="seller">
               <option value="">Any seller</option>
               {% for seller in seller_choices %}
-                <option value="{{ seller.username }}"{% if filters.seller|lower == seller.username|lower %} selected{% endif %}>{{ seller.username }}</option>
+                <option value="{{ seller }}"{% if filters.seller|lower == seller|lower %} selected{% endif %}>{{ seller }}</option>
               {% endfor %}
             </select>
           </div>
