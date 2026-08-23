@@ -3,6 +3,18 @@
 This changelog records implementation changes to the Flask-AAS AutoGrid360 application plugin.
 
 
+## 2026-08-22 — Form-boundary integration follow-up
+
+Completed the AutoGrid360 side of the Flask-AAS form-consolidation follow-up without changing marketplace behavior or persistence contracts.
+
+- Moved AutoGrid360's WTForms-specific listing location configuration from `services/location.py` into `forms/listings.py`, keeping form mutation with the forms that own those fields.
+- Updated listing and administrator routes to use the plugin-local form configuration helper.
+- Removed the plugin dependency on the former host `configure_location_choices()` WTForms mutation helper; host geography services now remain data/domain focused.
+- Preserved existing country/zone choice behavior and listing location workflows.
+- The coordinated Flask-AAS form cleanup moved host forms out of route/core modules, localized profile/location form behavior, consolidated CAPTCHA form ownership, and aligned profile/registration field contracts without changing Plugin API v1.
+- No AutoGrid360 schema or migration change was introduced. The durable plugin migration remains `98b97bf7aa67`.
+- Latest user-confirmed complete regressions after the coordinated form cleanup: **372 passed, 20 warnings, 276 subtests passed** for AutoGrid360 and **456 passed, 13 warnings, 34 subtests passed** for Flask-AAS.
+
 ## 2026-08-22 — Flask-AAS structural integration checkpoint
 
 Synchronized AutoGrid360 with the Flask-AAS AAS-035 structural cleanup without changing plugin behavior or persistence contracts.
@@ -12,7 +24,7 @@ Synchronized AutoGrid360 with the Flask-AAS AAS-035 structural cleanup without c
 - Updated host geographic helper imports from the former `app.core.locations` module to `app.services.geo`.
 - Kept foundational Flask-AAS integrations under `app.core`; AutoGrid360 continues to consume host-owned authentication, security, configuration, and extension contracts rather than duplicating them.
 - No AutoGrid360 schema, migration, persisted-setting, route, or public-behavior change was introduced. The durable plugin migration remains `98b97bf7aa67`.
-- Latest user-confirmed complete regressions after the coordinated host/plugin structural migration: **372 passed, 20 warnings, 276 subtests passed** for AutoGrid360 and **454 passed, 13 warnings, 34 subtests passed** for Flask-AAS.
+- Latest user-confirmed complete regressions after the coordinated host/plugin structural migration: **372 passed, 20 warnings, 276 subtests passed** for AutoGrid360 and **456 passed, 13 warnings, 34 subtests passed** for Flask-AAS.
 
 ## 2026-08-22 — Measured query/data-loading optimization checkpoint
 
