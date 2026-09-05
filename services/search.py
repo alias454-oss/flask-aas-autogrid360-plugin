@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import base64
 import binascii
+import re
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
@@ -76,6 +77,8 @@ SORT_OPTIONS = {
     SORT_PRICE_DESC,
 }
 PAGE_SIZE_OPTIONS = (10, 20, 50, 100)
+MAX_PUBLIC_PRICE = Decimal("9999999999.99")
+_PRICE_TOKEN_RE = re.compile(r"[0-9]{1,10}(?:\.[0-9]{1,2})?\Z")
 
 
 @dataclass(frozen=True)
@@ -514,6 +517,17 @@ def _year(args, name: str) -> int | None:
     return value
 
 
+def _valid_price_decimal(value: Decimal | None) -> bool:
+    """Return whether one price fits the persisted Numeric(12, 2) contract."""
+
+    return bool(
+        value is not None
+        and value.is_finite()
+        and Decimal("0") <= value <= MAX_PUBLIC_PRICE
+        and value.as_tuple().exponent >= -2
+    )
+
+
 def _decimal(args, name: str) -> Decimal | None:
     raw_value = _text(args, name)
     if not raw_value:
@@ -522,9 +536,7 @@ def _decimal(args, name: str) -> Decimal | None:
         value = parse_currency_input(raw_value)
     except (ArithmeticError, ValueError):
         return None
-    if value is None or not value.is_finite() or value < 0:
-        return None
-    return value
+    return value if _valid_price_decimal(value) else None
 
 
 def canonicalize_inventory_criteria(
@@ -834,6 +846,8 @@ def prepare_inventory_query(
 
 
 def _decimal_token(value: Decimal) -> str:
+    if not _valid_price_decimal(value):
+        raise ValueError("price is outside the supported public search range")
     token = format(value, "f")
     return token.rstrip("0").rstrip(".") if "." in token else token
 
@@ -872,11 +886,13 @@ def _range_token(minimum, maximum) -> str:
 def _parse_number_range(token: str, *, decimal: bool = False):
     def convert(raw):
         if decimal:
+            if _PRICE_TOKEN_RE.fullmatch(raw) is None:
+                return None
             try:
                 value = Decimal(raw)
             except InvalidOperation:
                 return None
-            return value if value.is_finite() and value >= 0 else None
+            return value if _valid_price_decimal(value) else None
         try:
             value = int(raw)
         except ValueError:
@@ -992,6 +1008,11 @@ def fancy_inventory_path(criteria: InventorySearchCriteria, *, page: int = 1) ->
         if reference_by_key(CATEGORY_FEATURE, feature_key, active_only=False) is None:
             return None
     if criteria.postal_code and not criteria.postal_country:
+        return None
+    if any(
+        value is not None and not _valid_price_decimal(value)
+        for value in (criteria.min_price, criteria.max_price)
+    ):
         return None
 
     segments: list[str] = []

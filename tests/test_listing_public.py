@@ -1420,6 +1420,48 @@ class AutoGrid360PublicListingRouteTests(AutoGrid360ListingRouteTestCase):
         self.assertEqual(target.query, "")
 
 
+    def test_fancy_price_filters_reject_unbounded_decimal_tokens(self):
+        self._set_fancy_urls(True)
+
+        for token in (
+            "under-1e1000000",
+            "over-0.001",
+            "under-10000000000",
+            "under-NaN",
+        ):
+            with self.subTest(token=token):
+                response = self.app.test_client().get(
+                    f"/autogrid360/price/{token}"
+                )
+                self.assertEqual(response.status_code, 404)
+                self.assertNotIn("Location", response.headers)
+                self.assertLess(len(response.get_data()), 10000)
+
+
+    def test_fancy_price_filters_accept_stored_price_range(self):
+        self._set_fancy_urls(True)
+
+        response = self.app.test_client().get(
+            "/autogrid360/price/10000-9999999999.99"
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+
+    def test_query_price_filters_ignore_values_outside_stored_price_contract(self):
+        self._set_fancy_urls(True)
+
+        for token in ("1e1000000", "0.001", "10000000000", "NaN"):
+            with self.subTest(token=token):
+                response = self.app.test_client().get(
+                    "/autogrid360/",
+                    query_string={"max_price": token},
+                )
+                self.assertEqual(response.status_code, 200)
+                self.assertNotIn("Location", response.headers)
+                self.assertLess(len(response.get_data()), 100000)
+
+
     def test_query_style_inventory_redirects_to_fancy_path_when_enabled(self):
         self._set_fancy_urls(True)
 
