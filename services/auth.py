@@ -6,6 +6,7 @@ from flask_login import current_user
 
 from app.core.extensions import db
 from app.models import User
+from app.plugins.autogrid360.models import STATUS_SOLD
 
 
 def is_autogrid360_admin() -> bool:
@@ -26,6 +27,15 @@ def can_manage_listing(listing) -> bool:
             listing.seller_id == current_user.id
             or is_autogrid360_admin()
         )
+    )
+
+
+def can_edit_listing(listing) -> bool:
+    """Return whether the current user may edit listing and vehicle content."""
+
+    return bool(
+        can_manage_listing(listing)
+        and (listing.status != STATUS_SOLD or is_autogrid360_admin())
     )
 
 

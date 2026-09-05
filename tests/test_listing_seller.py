@@ -669,6 +669,61 @@ class AutoGrid360SellerListingRouteTests(AutoGrid360ListingRouteTestCase):
         self.assertIn('value="1"', body)
 
 
+    def test_seller_cannot_edit_sold_listing(self):
+        listing = self._create_listing()
+        listing.status = STATUS_SOLD
+        original_title = listing.title
+        original_model = listing.vehicle.model
+        db.session.commit()
+        client = self.app.test_client()
+        self._login(client, self.seller)
+
+        get_response = client.get(f"/autogrid360/listings/{listing.id}/edit")
+        post_response = client.post(
+            f"/autogrid360/listings/{listing.id}/edit",
+            data=self._listing_form_data(
+                title="Changed after sale",
+                model="honda:accord",
+            ),
+        )
+
+        self.assertEqual(get_response.status_code, 409)
+        self.assertEqual(post_response.status_code, 409)
+        db.session.refresh(listing)
+        db.session.refresh(listing.vehicle)
+        self.assertEqual(listing.title, original_title)
+        self.assertEqual(listing.vehicle.model, original_model)
+        self.assertEqual(listing.status, STATUS_SOLD)
+
+
+    def test_sold_listing_hides_edit_until_seller_makes_it_available(self):
+        listing = self._create_listing()
+        listing.status = STATUS_SOLD
+        db.session.commit()
+        client = self.app.test_client()
+        self._login(client, self.seller)
+        edit_path = f"/autogrid360/listings/{listing.id}/edit"
+
+        detail = client.get(f"/autogrid360/listings/{listing.id}")
+        mine = client.get("/autogrid360/listings/")
+
+        self.assertEqual(detail.status_code, 200)
+        self.assertEqual(mine.status_code, 200)
+        self.assertNotIn(edit_path, detail.get_data(as_text=True))
+        self.assertNotIn(edit_path, mine.get_data(as_text=True))
+        self.assertIn(
+            f'action="/autogrid360/listings/{listing.id}/available"',
+            detail.get_data(as_text=True),
+        )
+
+        response = client.post(f"/autogrid360/listings/{listing.id}/available")
+
+        self.assertEqual(response.status_code, 302)
+        db.session.refresh(listing)
+        self.assertEqual(listing.status, STATUS_ACTIVE)
+        self.assertEqual(client.get(edit_path).status_code, 200)
+
+
     def test_non_owner_cannot_edit_listing(self):
         listing = self._create_listing()
         client = self.app.test_client()

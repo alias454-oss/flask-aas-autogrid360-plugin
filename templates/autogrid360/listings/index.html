@@ -47,8 +47,10 @@
               {% endif %}
               <p class="autogrid360-listing-card__actions">
                 <a href="{{ url_for('autogrid360_listings.detail', listing_id=listing.id) }}">Manage listing</a>
-                ·
-                <a href="{{ url_for('autogrid360_listings.edit', listing_id=listing.id) }}">Edit</a>
+                {% if listing.id in editable_listing_ids %}
+                  ·
+                  <a href="{{ url_for('autogrid360_listings.edit', listing_id=listing.id) }}">Edit</a>
+                {% endif %}
               </p>
             </div>
           </article>

@@ -14,8 +14,10 @@
       {% if can_manage_current_listing %}
         <nav class="autogrid360-listing-owner-controls" aria-label="Listing owner controls">
           <small>
-            <a href="{{ url_for('autogrid360_listings.edit', listing_id=listing.id) }}">Edit Listing</a>
-            &middot;
+            {% if can_edit_current_listing %}
+              <a href="{{ url_for('autogrid360_listings.edit', listing_id=listing.id) }}">Edit Listing</a>
+              &middot;
+            {% endif %}
             <a href="{{ url_for('autogrid360_listings.detail', listing_id=listing.id) }}">Manage Listing</a>
           </small>
         </nav>

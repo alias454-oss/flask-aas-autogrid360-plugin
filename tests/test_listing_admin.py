@@ -372,6 +372,24 @@ class AutoGrid360AdminListingRouteTests(AutoGrid360ListingRouteTestCase):
         self.assertIsNotNone(listing.published_at)
 
 
+    def test_admin_can_edit_sold_listing(self):
+        listing = self._create_listing()
+        listing.status = STATUS_SOLD
+        db.session.commit()
+        client = self.app.test_client()
+        self._login(client, self.admin)
+
+        response = client.post(
+            f"/autogrid360/listings/{listing.id}/edit",
+            data=self._listing_form_data(title="Administrator corrected sold listing"),
+        )
+
+        self.assertEqual(response.status_code, 302)
+        db.session.refresh(listing)
+        self.assertEqual(listing.title, "Administrator corrected sold listing")
+        self.assertEqual(listing.status, STATUS_SOLD)
+
+
     def test_moderator_cannot_edit_another_sellers_listing(self):
         listing = self._create_listing()
         client = self.app.test_client()

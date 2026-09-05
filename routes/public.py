@@ -29,7 +29,7 @@ from app.core.security import get_client_ip, normalize_email, redact_email
 from app.services.spam import check_spam
 from app.services.trackers import audit_activity_enabled, log_action_isolated
 from app.models import User
-from app.plugins.autogrid360.services.auth import can_manage_listing
+from app.plugins.autogrid360.services.auth import can_edit_listing, can_manage_listing
 from app.plugins.autogrid360.forms.inquiries import ListingInquiryForm
 from app.plugins.autogrid360.services.formatting import format_currency
 from app.plugins.autogrid360.services.settings import (
@@ -924,6 +924,7 @@ def _render_public_listing(listing: Listing):
         is_sold=listing.status == STATUS_SOLD,
         seller_contact_available=_seller_inquiry_available(),
         can_manage_current_listing=can_manage_listing(listing),
+        can_edit_current_listing=can_edit_listing(listing),
         listing_url=canonical_url,
         share_mailto=_share_mailto(listing, canonical_url),
         vehicle_history_links=(
