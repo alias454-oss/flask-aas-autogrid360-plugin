@@ -102,6 +102,10 @@ Production deployments should use storage that survives container or instance re
 
 `AUTOGRID360_IMAGE_ROOT` acts as an initial deployment seed or fallback before persisted AutoGrid360 settings exist.
 
+Listing-image uploads default to 10 MiB per source image, 24,000,000 decoded pixels, and 32 MiB for the complete multipart upload batch. The batch request limit is installed before host CSRF/form parsing so oversized multipart bodies are rejected with 413 before the upload form is parsed; the per-image byte and pixel checks remain independent validation layers.
+
+Seller inventory import and administrator full-site restore use the same early-enforcement pattern with their existing bundle policy: the multipart request ceiling is the configured compressed bundle limit plus 1 MiB of form overhead. Bundle compressed/uncompressed-content, entry-count, listing-count, seller-count, path, and image validation still run as independent checks after a request passes the parser ceiling.
+
 Additional deployment settings control upload sizes, image counts, pagination, feed size, and backup/restore limits.
 
 ## Operator commands

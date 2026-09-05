@@ -3,6 +3,17 @@
 This changelog records implementation changes to the Flask-AAS AutoGrid360 application plugin.
 
 
+## 2026-09-05 — Early multipart upload limit enforcement
+
+Moved existing upload request-size ceilings ahead of host CSRF/form parsing so oversized multipart bodies are bounded before Werkzeug parses image or inventory-transfer forms.
+
+- Reused the existing `AUTOGRID360_MAX_UPLOAD_REQUEST_BYTES` policy; the default remains **32 MiB per listing-image multipart upload batch**.
+- Applied the existing inventory bundle policy early for seller import and administrator restore as well: the multipart ceiling remains `AUTOGRID360_MAX_IMPORT_BUNDLE_BYTES` plus 1 MiB of form overhead.
+- Kept the existing **10 MiB per source image**, **24,000,000 decoded-pixel**, and listing image-count protections unchanged.
+- Applied request ceilings during blueprint URL preprocessing, which runs before Flask-WTF's CSRF request hook, and removed the later `Content-Length`-only route checks.
+- Added regression coverage with CSRF enabled for listing images, seller inventory import, and administrator inventory restore; oversized multipart requests return **413** before CSRF form parsing can turn the same requests into normal CSRF failures.
+- No schema, migration, persisted-setting, image-storage, or listing-lifecycle change was introduced. The durable plugin migration remains `98b97bf7aa67`.
+
 ## 2026-09-05 — Sold listing seller immutability
 
 Closed the Sold-listing re-review bypass by making Sold inventory content immutable to ordinary sellers while preserving reversible lifecycle management and administrator correction authority.

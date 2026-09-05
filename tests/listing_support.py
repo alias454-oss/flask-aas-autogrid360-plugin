@@ -10,7 +10,7 @@ from flask import Blueprint, Flask, g
 from flask_login import LoginManager
 from PIL import Image
 
-from app.core.extensions import db, limiter
+from app.core.extensions import csrf, db, limiter
 from app.models import Country, EnvSettings, Role, User, UserRole, Zone
 from app.plugins.autogrid360.models import (
     STATUS_ACTIVE,
@@ -71,6 +71,7 @@ class AutoGrid360ListingRouteTestCase(unittest.TestCase):
             RATELIMIT_STORAGE_URI="memory://",
         )
         db.init_app(self.app)
+        csrf.init_app(self.app)
         limiter.init_app(self.app)
 
         self.login_manager = LoginManager()
