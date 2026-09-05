@@ -20,11 +20,11 @@ Flask-AAS provides authentication, accounts, MFA, sessions, host roles, mail, CA
 
 ## Validation
 
-Latest user-confirmed automated baseline after the current Flask-AAS structural and form integration:
+Latest user-confirmed automated baseline:
 
 ```text
-AutoGrid360: 372 passed, 20 warnings, 276 subtests passed
-Flask-AAS:   456 passed, 13 warnings, 34 subtests passed
+AutoGrid360: 375 passed, 20 warnings, 284 subtests passed
+Flask-AAS:   466 passed, 18 warnings, 34 subtests passed
 ```
 
 The current public inventory path has been profiled for query scaling and ORM materialization. Representative 10/20/50-listing pages remain at a fixed 8 SELECTs after removing repeated settings/image work and unused list-route feature loading; sitemap/search/detail paths also use bounded or scalar loading where measurement showed material waste.
@@ -86,7 +86,7 @@ Marketplace policy is managed under **AutoGrid360 Admin → Settings**, includin
 * currency and distance display;
 * listing-image storage.
 
-The configured currency symbol, decimal separator, and thousands separator also govern human-entered monetary values. Listing price, Payment Calculator amount/down payment, and Advanced Search price ranges accept configured human-readable formatting while stored and machine-facing values remain canonical decimals. Listing and Payment Calculator monetary fields provide a read-only live formatted preview without rewriting the submitted input.
+The configured currency symbol, decimal separator, and thousands separator also govern human-entered monetary values. Listing price, Payment Calculator amount/down payment, and Advanced Search price ranges accept configured human-readable formatting while stored and machine-facing values remain canonical decimals. Public price filters are bounded to the stored `NUMERIC(12,2)` price contract before canonical URL formatting; Fancy URL price segments use plain decimal notation only and reject exponent, non-finite, excessive-precision, and out-of-range values. Listing and Payment Calculator monetary fields provide a read-only live formatted preview without rewriting the submitted input.
 
 Normalized listing images default to:
 

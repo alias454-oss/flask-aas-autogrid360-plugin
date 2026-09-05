@@ -3,6 +3,17 @@
 This changelog records implementation changes to the Flask-AAS AutoGrid360 application plugin.
 
 
+## 2026-09-05 — Bounded public price parsing
+
+Closed the public price-expansion path in inventory search without changing the stored price schema or ordinary search behavior.
+
+- Bounded public price filters to the existing `NUMERIC(12,2)` listing-price contract before fixed-point decimal formatting can occur.
+- Fancy-URL price tokens now accept only canonical nonnegative decimal notation with at most ten integer digits and two fractional digits; exponent notation, non-finite values, excessive precision, and out-of-range values are rejected before `Decimal` formatting.
+- Query-string Advanced Search prices retain configured currency parsing but are accepted only when the resulting value fits the same persisted magnitude and scale contract; invalid values are ignored as invalid filters rather than expanded or redirected.
+- Invalid Fancy URL price filters fail with a bounded 404 response and are not reflected into a redirect.
+- No schema or migration change was required. The durable plugin migration remains `98b97bf7aa67`.
+- User-confirmed regressions after the fix: **375 passed, 20 warnings, 284 subtests passed in 70.67s** for AutoGrid360 and **466 passed, 18 warnings, 34 subtests passed in 33.67s** for Flask-AAS.
+
 ## 2026-08-22 — Form-boundary integration follow-up
 
 Completed the AutoGrid360 side of the Flask-AAS form-consolidation follow-up without changing marketplace behavior or persistence contracts.
