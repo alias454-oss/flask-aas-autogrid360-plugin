@@ -60,6 +60,18 @@ images_bp = Blueprint(
     url_prefix="/autogrid360/listings",
 )
 
+
+@images_bp.url_value_preprocessor
+def _apply_image_upload_request_limit(endpoint, _values):
+    """Bound image multipart parsing before host CSRF touches form data."""
+
+    if (
+        request.method == "POST"
+        and endpoint == f"{images_bp.name}.upload"
+    ):
+        request.max_content_length = max_upload_request_bytes()
+
+
 IMAGE_EDITABLE_STATUSES = frozenset(
     {STATUS_DRAFT, STATUS_PENDING, STATUS_ACTIVE, STATUS_SALE_PENDING, STATUS_EXPIRED}
 )
@@ -141,11 +153,6 @@ def upload(listing_id):
 
     listing = _manageable_listing(listing_id)
     _ensure_images_editable(listing)
-    if (
-        request.content_length is not None
-        and request.content_length > max_upload_request_bytes()
-    ):
-        abort(413)
     form = ImageUploadForm()
     if not form.validate_on_submit():
         abort(400)

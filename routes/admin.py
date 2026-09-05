@@ -31,7 +31,7 @@ from app.plugins.autogrid360.services.transfer import (
     cleanup_restore_files,
     export_site_inventory_bundle,
     inspect_inventory_bundle,
-    max_import_bundle_bytes,
+    max_import_request_bytes,
     parse_seller_mapping_entries,
     resolve_restore_seller_mapping,
     restore_inventory_bundle,
@@ -61,6 +61,17 @@ admin_bp = Blueprint(
     __name__,
     url_prefix="/autogrid360/admin",
 )
+
+
+@admin_bp.url_value_preprocessor
+def _apply_inventory_restore_request_limit(endpoint, _values):
+    """Bound inventory-restore multipart parsing before host CSRF."""
+
+    if (
+        request.method == "POST"
+        and endpoint == f"{admin_bp.name}.inventory_restore"
+    ):
+        request.max_content_length = max_import_request_bytes()
 
 _PROFILE_FIELDS = (
     "display_name",
@@ -679,11 +690,6 @@ def inventory_restore():
     """Restore one seller or full-site AutoGrid360 backup as administrator."""
 
     require_autogrid360_admin()
-    request_limit = max_import_bundle_bytes() + (1024 * 1024)
-    if request.content_length is not None and request.content_length > request_limit:
-        flash("The uploaded AutoGrid360 backup is too large.", "danger")
-        return redirect(url_for("autogrid360_admin.backup_restore"))
-
     form = AdminInventoryRestoreForm()
     if not form.validate_on_submit():
         for field in (form.bundle, form.seller_mapping):

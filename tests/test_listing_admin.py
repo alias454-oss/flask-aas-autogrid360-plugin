@@ -623,6 +623,27 @@ class AutoGrid360AdminListingRouteTests(AutoGrid360ListingRouteTestCase):
         self.assertEqual(response.status_code, 413)
         self.assertEqual(ListingImage.query.count(), 0)
 
+    def test_image_upload_request_limit_precedes_csrf_form_parsing(self):
+        original_limit = self.app.config["AUTOGRID360_MAX_UPLOAD_REQUEST_BYTES"]
+        original_csrf = self.app.config["WTF_CSRF_ENABLED"]
+        self.app.config["AUTOGRID360_MAX_UPLOAD_REQUEST_BYTES"] = 100
+        self.app.config["WTF_CSRF_ENABLED"] = True
+        listing = self._create_listing()
+        client = self.app.test_client()
+        self._login(client, self.seller)
+        try:
+            response = client.post(
+                f"/autogrid360/listings/{listing.id}/images",
+                data={"images": [self._image_file()]},
+                content_type="multipart/form-data",
+            )
+        finally:
+            self.app.config["AUTOGRID360_MAX_UPLOAD_REQUEST_BYTES"] = original_limit
+            self.app.config["WTF_CSRF_ENABLED"] = original_csrf
+
+        self.assertEqual(response.status_code, 413)
+        self.assertEqual(ListingImage.query.count(), 0)
+
 
     def test_public_detail_uses_database_side_atomic_view_increment(self):
         listing = self._create_listing()
@@ -1574,6 +1595,29 @@ class AutoGrid360AdminListingRouteTests(AutoGrid360ListingRouteTestCase):
         self.assertIsNone(db.session.get(AutoGrid360Settings, 1))
 
 
+    def test_admin_inventory_restore_limit_precedes_csrf_form_parsing(self):
+        original_limit = self.app.config.get("AUTOGRID360_MAX_IMPORT_BUNDLE_BYTES")
+        original_csrf = self.app.config["WTF_CSRF_ENABLED"]
+        self.app.config["AUTOGRID360_MAX_IMPORT_BUNDLE_BYTES"] = 1
+        self.app.config["WTF_CSRF_ENABLED"] = True
+        client = self.app.test_client()
+        self._login(client, self.admin)
+        try:
+            response = client.post(
+                "/autogrid360/admin/inventory-restore",
+                data={"bundle": (BytesIO(b"x" * 1_200_000), "oversized.zip")},
+                content_type="multipart/form-data",
+            )
+        finally:
+            if original_limit is None:
+                self.app.config.pop("AUTOGRID360_MAX_IMPORT_BUNDLE_BYTES", None)
+            else:
+                self.app.config["AUTOGRID360_MAX_IMPORT_BUNDLE_BYTES"] = original_limit
+            self.app.config["WTF_CSRF_ENABLED"] = original_csrf
+
+        self.assertEqual(response.status_code, 413)
+
+
     def test_admin_full_backup_and_restore_preserves_listing_state(self):
         listing = self._create_listing()
         now = datetime.now(timezone.utc)
@@ -1646,6 +1690,29 @@ class AutoGrid360AdminListingRouteTests(AutoGrid360ListingRouteTestCase):
             image_path = manifest["listings"][0]["images"][0]["path"]
             self.assertIn(image_path, archive.namelist())
         response.close()
+
+
+    def test_seller_inventory_import_limit_precedes_csrf_form_parsing(self):
+        original_limit = self.app.config.get("AUTOGRID360_MAX_IMPORT_BUNDLE_BYTES")
+        original_csrf = self.app.config["WTF_CSRF_ENABLED"]
+        self.app.config["AUTOGRID360_MAX_IMPORT_BUNDLE_BYTES"] = 1
+        self.app.config["WTF_CSRF_ENABLED"] = True
+        client = self.app.test_client()
+        self._login(client, self.seller)
+        try:
+            response = client.post(
+                "/autogrid360/account/inventory-import",
+                data={"bundle": (BytesIO(b"x" * 1_200_000), "oversized.zip")},
+                content_type="multipart/form-data",
+            )
+        finally:
+            if original_limit is None:
+                self.app.config.pop("AUTOGRID360_MAX_IMPORT_BUNDLE_BYTES", None)
+            else:
+                self.app.config["AUTOGRID360_MAX_IMPORT_BUNDLE_BYTES"] = original_limit
+            self.app.config["WTF_CSRF_ENABLED"] = original_csrf
+
+        self.assertEqual(response.status_code, 413)
 
 
     def test_inventory_restore_preserves_state_when_seller_import_enabled(self):

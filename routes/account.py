@@ -36,7 +36,7 @@ from app.plugins.autogrid360.services.transfer import (
     cleanup_restore_files,
     export_inventory_bundle,
     import_inventory_bundle,
-    max_import_bundle_bytes,
+    max_import_request_bytes,
     save_bundle_upload,
 )
 
@@ -48,6 +48,17 @@ account_bp = Blueprint(
     __name__,
     url_prefix="/autogrid360/account",
 )
+
+
+@account_bp.url_value_preprocessor
+def _apply_inventory_import_request_limit(endpoint, _values):
+    """Bound inventory-import multipart parsing before host CSRF."""
+
+    if (
+        request.method == "POST"
+        and endpoint == f"{account_bp.name}.inventory_import"
+    ):
+        request.max_content_length = max_import_request_bytes()
 
 _PROFILE_FIELDS = (
     "display_name",
@@ -205,11 +216,6 @@ def inventory_import():
 
     if not (is_autogrid360_admin() or seller_inventory_import_allowed()):
         abort(403)
-
-    request_limit = max_import_bundle_bytes() + (1024 * 1024)
-    if request.content_length is not None and request.content_length > request_limit:
-        flash("The uploaded inventory bundle is too large.", "danger")
-        return redirect(url_for("autogrid360_account.inventory_transfer"))
 
     form = InventoryImportForm()
     if not form.validate_on_submit():

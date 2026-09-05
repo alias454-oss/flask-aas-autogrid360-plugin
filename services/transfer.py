@@ -54,6 +54,7 @@ BUNDLE_SCOPE_SITE = "site"
 BUNDLE_SCOPES = frozenset({BUNDLE_SCOPE_SELLER, BUNDLE_SCOPE_SITE})
 MANIFEST_NAME = "manifest.json"
 DEFAULT_MAX_IMPORT_BUNDLE_BYTES = 256 * 1024 * 1024
+IMPORT_BUNDLE_REQUEST_OVERHEAD_BYTES = 1024 * 1024
 DEFAULT_MAX_IMPORT_UNCOMPRESSED_BYTES = 512 * 1024 * 1024
 DEFAULT_MAX_IMPORT_LISTINGS = 5000
 DEFAULT_MAX_IMPORT_SELLERS = 5000
@@ -105,6 +106,12 @@ def max_import_bundle_bytes() -> int:
         ),
         1,
     )
+
+
+def max_import_request_bytes() -> int:
+    """Return the multipart request limit for one inventory bundle upload."""
+
+    return max_import_bundle_bytes() + IMPORT_BUNDLE_REQUEST_OVERHEAD_BYTES
 
 
 def max_import_uncompressed_bytes() -> int:
