@@ -6,7 +6,7 @@ It focuses on publishing and managing vehicle inventory for individual sellers a
 
 ## What it provides
 
-* Seller-owned vehicle listings with Draft, Pending Review, Active, Sale Pending, Sold, Expired, and Removed states.
+* Seller-owned vehicle listings with Draft, Pending Review, Active, Sale Pending, Sold, Expired, and Removed states; Sold listing content is immutable to ordinary sellers until the listing returns to an editable state.
 * Configurable listing approval, re-review, expiration, retention, and public visibility rules.
 * Listing image upload, normalization, thumbnails, ordering, and primary-image management.
 * Public inventory browsing, Advanced Search, seller pages, postal-radius search, and seller inquiries that fail closed when host mail is unavailable.
@@ -23,7 +23,7 @@ Flask-AAS provides authentication, accounts, MFA, sessions, host roles, mail, CA
 Latest user-confirmed automated baseline:
 
 ```text
-AutoGrid360: 375 passed, 20 warnings, 284 subtests passed
+AutoGrid360: 378 passed, 20 warnings, 284 subtests passed
 Flask-AAS:   466 passed, 18 warnings, 34 subtests passed
 ```
 
@@ -87,6 +87,8 @@ Marketplace policy is managed under **AutoGrid360 Admin → Settings**, includin
 * listing-image storage.
 
 The configured currency symbol, decimal separator, and thousands separator also govern human-entered monetary values. Listing price, Payment Calculator amount/down payment, and Advanced Search price ranges accept configured human-readable formatting while stored and machine-facing values remain canonical decimals. Public price filters are bounded to the stored `NUMERIC(12,2)` price contract before canonical URL formatting; Fancy URL price segments use plain decimal notation only and reject exponent, non-finite, excessive-precision, and out-of-range values. Listing and Payment Calculator monetary fields provide a read-only live formatted preview without rewriting the submitted input.
+
+Sold listings remain manageable through the normal lifecycle controls, but ordinary sellers cannot edit listing or vehicle content while the listing is Sold. A seller must first return the listing to an editable lifecycle state; administrators retain correction authority for Sold inventory.
 
 Normalized listing images default to:
 

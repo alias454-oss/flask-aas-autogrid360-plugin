@@ -3,6 +3,17 @@
 This changelog records implementation changes to the Flask-AAS AutoGrid360 application plugin.
 
 
+## 2026-09-05 — Sold listing seller immutability
+
+Closed the Sold-listing re-review bypass by making Sold inventory content immutable to ordinary sellers while preserving reversible lifecycle management and administrator correction authority.
+
+- Sellers can no longer open or submit the listing/vehicle edit workflow while a listing is Sold; the server rejects direct edit requests and seller-facing Edit links are hidden in management and public-listing controls.
+- Administrators retain the ability to correct Sold listing and vehicle content.
+- Existing Sold availability transitions remain available, so a seller can return a Sold listing to an editable lifecycle state before changing its content; normal re-review policy then applies to edits in states where editing is allowed.
+- Existing Sold image-mutation restrictions are unchanged.
+- No schema or migration change was required. The durable plugin migration remains `98b97bf7aa67`.
+- User-confirmed AutoGrid360 regression after the change: **378 passed, 20 warnings, 284 subtests passed in 69.92s**. The latest user-confirmed Flask-AAS baseline remains **466 passed, 18 warnings, 34 subtests passed**.
+
 ## 2026-09-05 — Bounded public price parsing
 
 Closed the public price-expansion path in inventory search without changing the stored price schema or ordinary search behavior.

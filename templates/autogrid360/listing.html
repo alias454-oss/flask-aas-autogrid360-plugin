@@ -17,9 +17,11 @@
 
       <nav class="autogrid360-listing-owner-controls" aria-label="Listing management navigation">
         <small>
-          <a href="{{ url_for('autogrid360_listings.edit', listing_id=listing.id) }}">Edit Listing</a>
+          {% if can_edit %}
+            <a href="{{ url_for('autogrid360_listings.edit', listing_id=listing.id) }}">Edit Listing</a>
+          {% endif %}
           {% if can_view_public %}
-            &middot;
+            {% if can_edit %}&middot;{% endif %}
             <a href="{{ autogrid360_listing_url(listing) }}">View Public Listing</a>
           {% endif %}
         </small>

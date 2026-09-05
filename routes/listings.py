@@ -12,6 +12,7 @@ from app.core.extensions import db, limiter
 from app.core.security import get_client_ip
 from app.plugins.autogrid360.services.audit import audit_listing_action
 from app.plugins.autogrid360.services.auth import (
+    can_edit_listing,
     can_manage_listing,
     is_autogrid360_admin,
     require_autogrid360_admin,
@@ -201,6 +202,9 @@ def mine():
     return render_template(
         "autogrid360/listings/index.html",
         listings=listings,
+        editable_listing_ids={
+            listing.id for listing in listings if can_edit_listing(listing)
+        },
         title="My Listings",
     )
 
@@ -305,6 +309,8 @@ def edit(listing_id):
     listing = Listing.query.filter_by(id=listing_id).first_or_404()
     if not can_manage_listing(listing):
         abort(404)
+    if not can_edit_listing(listing):
+        abort(409)
 
     is_admin = is_autogrid360_admin()
     vehicle = listing.vehicle
@@ -916,6 +922,7 @@ def detail(listing_id):
         is_owner=is_owner,
         is_admin=is_admin,
         can_view_public=listing_is_publicly_visible(listing),
+        can_edit=can_edit_listing(listing),
         can_submit=(is_owner or is_admin) and listing.status == STATUS_DRAFT,
         can_approve=is_admin and listing.status == STATUS_PENDING,
         can_mark_sale_pending=(is_owner or is_admin) and listing.status in {STATUS_ACTIVE, STATUS_SOLD},
