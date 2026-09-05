@@ -44,6 +44,7 @@ from app.plugins.autogrid360.services.reference import (
     vehicle_model_by_key,
 )
 from app.plugins.autogrid360.tests.support import seed_location_references
+from app.routes.favicon import favicon_bp
 from app.routes.locations import locations_bp
 
 
@@ -106,6 +107,7 @@ class AutoGrid360ListingRouteTestCase(unittest.TestCase):
         )
         self.app.register_blueprint(admin_blueprint)
 
+        self.app.register_blueprint(favicon_bp)
         self.app.register_blueprint(locations_bp)
         self.app.register_blueprint(public_bp)
         self.app.register_blueprint(admin_bp)
