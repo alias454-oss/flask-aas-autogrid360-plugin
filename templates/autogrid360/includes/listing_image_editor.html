@@ -10,36 +10,49 @@
             src="{{ url_for('autogrid360_images.file', listing_id=listing.id, image_id=image.id, variant='thumb') }}"
             alt="Image {{ loop.index }} for {{ listing.title }}"
           >
-          {% if image.is_primary %}<small class="autogrid360-primary-label"><strong>Primary</strong></small>{% endif %}
-
           <div class="autogrid360-image-actions">
-            {% if not image.is_primary %}
-              <form method="post" action="{{ url_for('autogrid360_images.primary', listing_id=listing.id, image_id=image.id) }}">
+            <div class="autogrid360-image-action-row autogrid360-image-action-row--main">
+              {% if image.is_primary %}
+                <button
+                  class="button autogrid360-primary-label"
+                  type="button"
+                  disabled
+                  aria-label="Current primary image"
+                >Primary</button>
+              {% else %}
+                <form method="post" action="{{ url_for('autogrid360_images.primary', listing_id=listing.id, image_id=image.id) }}">
+                  {{ image_action_form.hidden_tag() }}
+                  <button class="button" type="submit">Primary</button>
+                </form>
+              {% endif %}
+
+              <span class="autogrid360-image-action-divider" aria-hidden="true">|</span>
+
+              <form method="post" action="{{ url_for('autogrid360_images.delete', listing_id=listing.id, image_id=image.id) }}">
                 {{ image_action_form.hidden_tag() }}
-                <button class="button" type="submit">Set primary</button>
+                <button class="button" type="submit">Delete</button>
               </form>
-            {% endif %}
+            </div>
 
-            {% if not loop.first %}
-              <form method="post" action="{{ url_for('autogrid360_images.move', listing_id=listing.id, image_id=image.id) }}">
-                {{ image_move_form.csrf_token }}
-                <input type="hidden" name="direction" value="up">
-                <button class="button autogrid360-image-order-button" type="submit" aria-label="Move image {{ loop.index }} earlier" title="Move earlier">&larr;</button>
-              </form>
-            {% endif %}
+            {% if not loop.first or not loop.last %}
+              <div class="autogrid360-image-action-row autogrid360-image-action-row--order">
+                {% if not loop.first %}
+                  <form method="post" action="{{ url_for('autogrid360_images.move', listing_id=listing.id, image_id=image.id) }}">
+                    {{ image_move_form.csrf_token }}
+                    <input type="hidden" name="direction" value="up">
+                    <button class="button autogrid360-image-order-button" type="submit" aria-label="Move image {{ loop.index }} earlier" title="Move earlier">&larr;</button>
+                  </form>
+                {% endif %}
 
-            {% if not loop.last %}
-              <form method="post" action="{{ url_for('autogrid360_images.move', listing_id=listing.id, image_id=image.id) }}">
-                {{ image_move_form.csrf_token }}
-                <input type="hidden" name="direction" value="down">
-                <button class="button autogrid360-image-order-button" type="submit" aria-label="Move image {{ loop.index }} later" title="Move later">&rarr;</button>
-              </form>
+                {% if not loop.last %}
+                  <form method="post" action="{{ url_for('autogrid360_images.move', listing_id=listing.id, image_id=image.id) }}">
+                    {{ image_move_form.csrf_token }}
+                    <input type="hidden" name="direction" value="down">
+                    <button class="button autogrid360-image-order-button" type="submit" aria-label="Move image {{ loop.index }} later" title="Move later">&rarr;</button>
+                  </form>
+                {% endif %}
+              </div>
             {% endif %}
-
-            <form method="post" action="{{ url_for('autogrid360_images.delete', listing_id=listing.id, image_id=image.id) }}">
-              {{ image_action_form.hidden_tag() }}
-              <button class="button" type="submit">Delete</button>
-            </form>
           </div>
         </li>
       {% endfor %}

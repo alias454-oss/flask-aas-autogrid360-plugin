@@ -1460,7 +1460,13 @@ class AutoGrid360SellerListingRouteTests(AutoGrid360ListingRouteTestCase):
         self.assertIn("Listing Images", edit_body)
         self.assertIn("Upload Images", edit_body)
         self.assertIn(">Delete</button>", edit_body)
-        self.assertIn("Set primary", edit_body)
+        self.assertIn(">Primary</button>", edit_body)
+        self.assertIn(
+            'class="button autogrid360-primary-label"',
+            edit_body,
+        )
+        self.assertIn('aria-label="Current primary image"', edit_body)
+        self.assertNotIn("Set primary", edit_body)
         self.assertIn("Manage Listing", edit_body)
         self.assertNotIn(">View Listing</a>", edit_body)
         self.assertIn(

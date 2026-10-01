@@ -93,10 +93,18 @@
 }
 
 .autogrid360-image-actions {
+  margin-top: 0.5rem;
+}
+
+.autogrid360-image-action-row {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.25rem;
-  margin-top: 0.5rem;
+}
+
+.autogrid360-image-action-row + .autogrid360-image-action-row {
+  margin-top: 0.25rem;
 }
 
 .autogrid360-image-actions form {
@@ -107,6 +115,12 @@
 .autogrid360-image-actions .button {
   font-size: 0.875rem;
   padding: 0.3rem 0.5rem;
+}
+
+.autogrid360-primary-label:disabled {
+  cursor: default;
+  opacity: 0.65;
+  pointer-events: none;
 }
 
 .autogrid360-image-order-button {
@@ -509,8 +523,7 @@
 }
 
 .autogrid360-primary-label {
-  display: block;
-  margin-top: 0.35rem;
+  display: inline-block;
 }
 
 .autogrid360-edit-heading {
